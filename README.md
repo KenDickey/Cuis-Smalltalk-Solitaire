@@ -17,5 +17,4 @@ To load the package
 Then execute
 
     Klondike newGame.
-or
     FreeCell newGame.
