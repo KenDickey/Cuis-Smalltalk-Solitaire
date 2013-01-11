@@ -1,9 +1,9 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1511] on 9 January 2013 at 9:45:29 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 10 January 2013 at 4:38:54 pm'!
 'Description Please enter a description for this package '!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
 	instanceVariableNames: 'targetTable'
-	classVariableNames: ''
+	classVariableNames: 'ContainerOffset'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
 !classDefinition: 'CardContainerMorph class' category: #'Morphic-Games-Solitaire'!
@@ -123,7 +123,7 @@ EnableDisableButton class
 !classDefinition: #FreeCell category: #'Morphic-Games-Solitaire'!
 CardTableMorph subclass: #FreeCell
 	instanceVariableNames: 'deck spares piles columns'
-	classVariableNames: 'NumColumns NumPiles NumSpares'
+	classVariableNames: 'ContaineOffset NumColumns NumPiles NumSpares'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
 !classDefinition: 'FreeCell class' category: #'Morphic-Games-Solitaire'!
@@ -209,15 +209,16 @@ A ScaledCardMorph is a resized/scaled CardMorph.!
 !Stack commentStamp: '<historical>' prior: 0!
 Main comment stating the purpose of this class and relevant relationship to other classes.LIFO Stack.Structure: top				number of elements == size == index of top value. valuesArray		array of valuesvaluesArray grows by doubling; no shrinkage at present.Initial purpose in life is to support SmallScheme dynamic variables.!
 
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:09'!
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:31'!
 addCard: aCard
 
 	(self isEmpty)
+	      ifTrue: [aCard morphPosition: 0 @ 0]
 		ifFalse: [aCard morphPosition: (0 @ (PixelsPerOverlap * self numberOfCards))].
 	self addMorph: aCard! !
 
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/24/2011 02:08'!
-addCards: aCardCollectionOrContainer	"Add a collection of CardMorphs to the top of my Column"	| aCollection |	(aCardCollectionOrContainer isCardContainer)	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]	ifFalse: [ aCollection := aCardCollectionOrContainer ].		"I assume checking for legality has alreade been done"	aCollection do: [:aCard| self addCard: aCard].	^aCardCollectionOrContainer! !
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 13:43'!
+addCards: aCardCollectionOrContainer	"Add a collection of CardMorphs to the top of my Column"	| aCollection |	(aCardCollectionOrContainer isKindOf: CardContainerMorph)	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]	ifFalse: [ aCollection := aCardCollectionOrContainer ].		"I assume checking for legality has alreade been done"	aCollection do: [:aCard| self addCard: aCard].	^aCardCollectionOrContainer! !
 
 !CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 6/25/2011 18:41'!
 initialize	super initialize! !
@@ -263,8 +264,8 @@ pixelsPerOverlap	"Cards in column overlap by.."	^PixelsPerOverlap! !
 !CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/9/2013 16:35'!
 acceptDroppingMorph: aMorph event: evt 	"aMorph is a Card which may contain submorphs which 	are also Cards.  Add to me."	| table |	table := targetTable.	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ].	aMorph hasSubmorphs		ifFalse: [self addCard: aMorph]		ifTrue: [ |tmpMorph|				"If submorphs are added directly, the offsets are wrong				because the fullBounds includes the submorphs."				tmpMorph := Morph new initialize.				"remove submorphs from aMorph."				aMorph submorphs do: [:m | tmpMorph addMorph: m].				"remove the over-large fullBounds area"				"aMorph layoutChanged."				"Add the bottom Card, now without submorphs."				self addCard: aMorph.				"Now move them into the Container at the proper offsets"				tmpMorph submorphs do: [:m | self addMorph: m]				]	! !
 
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 16:36'!
-addCard: aCard	"Add a Card to me"	"I assume checking for legality of drop has already been done"	self addMorph: aCard	"aCard bounds: self innerBounds"! !
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:18'!
+addCard: aCard	"Add a Card to me"	"I assume checking for legality of drop has already been done"	self addMorph: aCard! !
 
 !CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
 defaultLayout	^LayoutSpec  fixedWidth: (CardMorph width + 4)					 fixedHeight: (CardMorph height + 4) 					 minorDirectionPadding: #center! !
@@ -299,8 +300,9 @@ restoreFromArray: stateArray givenDeck: aDeck	"Reconstiture a Card Container gi
 !CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 10:45'!
 saveStateToArray	"Answer an array containing Card Numbers of Cards I contain"	^self submorphs collect: [ :aCard | aCard cardNumber ]! !
 
-!CardContainerMorph methodsFor: 'private' stamp: 'KenD 10/23/2004 20:31'!
-setTargetTable	"Follow the owner chain to an CardTable and set the targetTable to it."	| myOwner stillLooking |	myOwner := self owner.	stillLooking := myOwner isNil not & myOwner isCardTable not.	[stillLooking]		whileTrue: [myOwner := myOwner owner.			stillLooking := myOwner isNil not & myOwner isCardTable not].	myOwner isCardTable		ifTrue: [self targetTable: myOwner]! !
+!CardContainerMorph methodsFor: 'private' stamp: 'KenD 1/10/2013 13:51'!
+setTargetTable	"Follow the owner chain to an CardTable and set the targetTable to it."	| myOwner stillLooking |	myOwner := self owner.	stillLooking := myOwner isNil not & (myOwner isKindOf: CardTableMorph) not.	[stillLooking]		whileTrue: [myOwner := myOwner owner.			stillLooking := myOwner isNil not 
+						& (myOwner isKindOf: CardTableMorph) not].	(myOwner isKindOf: CardTableMorph)		ifTrue: [self targetTable: myOwner]! !
 
 !CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:23'!
 targetTable	"Answer my containing table or nil.	 Cache my containing Table as required."	targetTable isNil		ifTrue: [self setTargetTable].	^ targetTable! !
@@ -316,6 +318,13 @@ wantsDroppedMorph: aMorph event: evt 	"Answer false unless I have a table, else
 
 !CardContainerMorph class methodsFor: 'new-morph participation' stamp: 'KenD 10/25/2004 08:08'!
 includeInNewMorphMenu	^ false! !
+
+!CardContainerMorph class methodsFor: 'class initialization' stamp: 'KenD 1/10/2013 14:28'!
+initialize
+	"self initialize"
+	
+	ContainerOffset _ 2 @ 2.
+! !
 
 !CardDeck methodsFor: 'access' stamp: 'KenD 11/4/2004 09:15'!
 cardFromNumber: anInteger	"Given card number 1..52 answer the corresponding CardMorph from this deck."	"(anInteger < 0) | (anInteger > 52)	ifTrue: [ Error signal: 'Card Number out of Range 1..52' ]	ifFalse: [^ self cards detect: [ :card | card cardNumber = anInteger ]]"		^ self cards detect: [ :card | card cardNumber = anInteger ]! !
@@ -365,17 +374,25 @@ startOver	"Re-deal the same cards."	index := 0! !
 !CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/24/2011 02:08'!
 acceptDroppingMorph: aCardMorph event: evt 	"I do NOT accept dropped cards unless inUndo"		| table |	table := self targetTable.	table isNil ifTrue: [^ false].	table inUndo ifTrue: [ self addCard: aCardMorph ]! !
 
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:43'!
-addCard: aCard	"Add a Card to me"	aCard morphPosition: 2 @ 2.	aCard hasSubmorphs		ifTrue: [ 			aCard makeFaceDown.			aCard submorphs 				do: [ :card | 					aCard removeMorph: card.					card makeFaceDown";						  bounds: self innerBounds".					cardStack push: card ].	].	cardStack push: aCard.	self showTopCard;	yourself! !
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:21'!
+addCard: aCard	"Add a Card or Cards to me"	aCard morphPosition: ContainerOffset.	aCard hasSubmorphs 		ifTrue: [ "Add all the cards"			aCard makeFaceDown.			aCard submorphs 				do: [ :card | 					aCard removeMorph: card.					card makeFaceDown.
+					card morphPosition: ContainerOffset.					cardStack push: card ].	].	cardStack push: aCard.	self showTopCard;	yourself! !
 
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:44'!
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:10'!
 addCards: aCollectionOrDeck	"Add Cards from aCollectionOrDeck into me."	(aCollectionOrDeck isKindOf: CardDeck)	ifTrue: [ (aCollectionOrDeck cards) 			 reverseDo: [ :card | cardStack push: card.	
-							card morphPosition: 2 @ 2.
+							card morphPosition: ContainerOffset.
 						] 	]	ifFalse: [ aCollectionOrDeck 			 reverseDo: [ :card | cardStack push: card.
-							card morphPosition: 2 @ 2. ] 						].	self showTopCard;	yourself! !
+							card morphPosition: ContainerOffset. ] 						].	self showTopCard;	yourself! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 11/20/2004 19:00'!
-click: evt 	"Delegate to table, if available."		| table |	table := self targetTable.	table isNil		ifTrue: [^ false]		ifFalse: [^ table click: evt from: self ]! !
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 14:56'!
+click: evt 	"Delegate to table, if available."	
+	| table |
+	table := self targetTable.	table isNil		ifTrue: [^ false]		ifFalse: [^ table click: evt from: self ]! !
+
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:05'!
+click: evt localPosition: ignoredPosition	"Delegate to table, if available."	
+	| table |
+	table := self targetTable.	table isNil		ifTrue: [^ false]		ifFalse: [^ table click: evt from: self ]! !
 
 !CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 11/21/2004 14:51'!
 doubleClick: evt 	"ignore"	^ false! !
@@ -401,6 +418,14 @@ isEmpty	"I am empty if I contain zero Cards."	^cardStack isEmpty! !
 !CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:10'!
 makeEmpty		(self hasSubmorphs)		ifTrue: [ self removeAllMorphs ].	cardStack := Stack new initialize.	^self! !
 
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:04'!
+mouseDown: evt 
+	"Do nothing upon mouse-down except inform the hand to watch for a 
+	click; wait until an ensuing #click: message gets dispatched"
+	
+	evt hand waitForClicksOrDrag: self
+				event: evt clkSel: #click:localPosition: dblClkSel:nil.! !
+
 !CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:17'!
 numCards	^cardStack size! !
 
@@ -413,8 +438,8 @@ restoreFromArray: stateArray givenDeck: aDeck	"Reconstiture a CardDeckMorph giv
 !CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 11/24/2004 12:06'!
 saveStateToArray	"Answer an array containint Card Numbers of Cards I contain"	| anArray |	anArray := cardStack asArray.	1 to: anArray size do: [ :index | 		anArray at: index put: ((anArray at: index) cardNumber) ].	^anArray! !
 
-!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/9/2013 21:33'!
-showTopCard	"PRIVATE -- I am invoked whenever Cards are added to or removed from me."	(self hasSubmorphs)		ifTrue: [ self removeAllMorphs ].	self isEmpty	ifFalse: [ | topCard |		topCard := cardStack topValue.		topCard makeFaceUp.		topCard morphPosition: 0 @ 0.		self addMorph: topCard  	].	^self! !
+!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/10/2013 14:27'!
+showTopCard	"PRIVATE -- I am invoked whenever Cards are added to or removed from me."	(self hasSubmorphs)		ifTrue: [ self removeAllMorphs ].	self isEmpty	ifFalse: [ | topCard |		topCard := cardStack topValue.		topCard makeFaceUp.		topCard morphPosition: ContainerOffset.		self addMorph: topCard  	].	^self! !
 
 !CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:43'!
 takeTopCard	"Answer my top card (removed from me)"	| topCard |	topCard := cardStack pop.	"By convention, return topCard face up."	topCard isFaceDown ifTrue: [ topCard flip ].	"Show NEW top card"	self showTopCard.	^topCard! !
@@ -486,14 +511,14 @@ initialize	PixelOverlap := 10! !
 !CardDiscardMorph class methodsFor: 'instance creation' stamp: 'KenD 11/17/2004 12:13'!
 newShowing: numCards		| newDiscard |	newDiscard := self new.	newDiscard numCardsToShow: numCards.	^newDiscard! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/20/2004 08:41'!
-< aCard	"Absolute ordering over all cards in a 52 card deck."	(aCard isCardMorph)	ifTrue: [ ^ (self cardNumber) < (aCard cardNumber) ]	ifFalse: [ ^false ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+< aCard	"Absolute ordering over all cards in a 52 card deck."	(aCard isKindOf: CardMorph)	ifTrue: [ ^ (self cardNumber) < (aCard cardNumber) ]	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/19/2004 13:15'!
-= aCard	(aCard isCardMorph)	ifTrue: [ ^ (self cardNumber) = (aCard cardNumber) ]	ifFalse: [ ^false ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+= aCard	(aCard isKindOf: CardMorph)	ifTrue: [ ^ (self cardNumber) = (aCard cardNumber) ]	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/19/2004 13:15'!
-> aCard	(aCard isCardMorph)	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]	ifFalse: [ ^false ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+> aCard	(aCard isKindOf: CardMorph)	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]	ifFalse: [ ^false ].! !
 
 !CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/9/2013 16:29'!
 aboutToBeGrabbedBy: aHand 	"I'm about to be grabbed by the hand. If other cards are above me in a 	Card Container, then move them from the Container to being submorphs of me"
@@ -511,6 +536,9 @@ cardNumber	"private"	^cardNumber! !
 
 !CardMorph methodsFor: 'event handling' stamp: 'KenD 11/20/2004 19:00'!
 click: evt 	"ignore this and wait until #firstClickTimedOut: arrives"	(self owner isKindOf: CardDeckMorph)	ifTrue: [ self owner click: evt ]	ifFalse: [ ^false ]! !
+
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:03'!
+click: evt localPosition: localEventPosition	"ignore this and wait until #firstClickTimedOut: arrives"	(self owner isKindOf: CardDeckMorph)	ifTrue: [ self owner click: evt ]	ifFalse: [ ^false ]! !
 
 !CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/9/2013 18:19'!
 collectCardsAboveMe 	"I'm about to be grabbed by the hand or otherwise moved. 	If other cards are above me in a Card Container, then move 	them from the Container to being submorphs of me"	| idx cards |	cards := owner isNil ifTrue: [ nil ] ifFalse: [ owner submorphs ].	cards isNil ifTrue: [ ^self ].	idx :=cards indexOf: self ifAbsent: [^ self].	idx = 1 ifTrue: [^ self].	(cards copyFrom: 1 to: idx - 1)		do: [:m | m class = self class				ifTrue: [self addMorphBack: m]].	self redrawNeeded.! !
@@ -545,17 +573,17 @@ handlesMouseDown: evt 	^ true! !
 !CardMorph methodsFor: 'comparing' stamp: 'KenD 10/20/2004 10:31'!
 hasDifferentColorThan: anotherCard	"Answer true if anotherCard has the same color"		(self hasSameColorAs: anotherCard)	ifTrue: [ ^false ]	ifFalse: [ ^true ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/23/2004 19:52'!
-hasFaceOneLessThan: anotherCard	"Answer true if anotherCard has the same face value plus one"		(anotherCard isCardMorph)	ifTrue: [ ^(self faceNumber + 1) == (anotherCard faceNumber) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+hasFaceOneLessThan: anotherCard	"Answer true if anotherCard has the same face value plus one"		(anotherCard isKindOf: CardMorph)	ifTrue: [ ^(self faceNumber + 1) == (anotherCard faceNumber) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/28/2004 11:08'!
-hasSameColorAs: anotherCard	"Answer true if anotherCard has the same color"		(anotherCard isCardMorph)	ifTrue: [ ^(self suitColor) == (anotherCard suitColor) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+hasSameColorAs: anotherCard	"Answer true if anotherCard has the same color"		(anotherCard isKindOf: CardMorph)	ifTrue: [ ^(self suitColor) == (anotherCard suitColor) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/20/2004 09:08'!
-hasSameFaceAs: anotherCard	"Answer true if anotherCard has the same face value"		(anotherCard isCardMorph)	ifTrue: [ ^(self face) == (anotherCard face) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+hasSameFaceAs: anotherCard	"Answer true if anotherCard has the same face value"		(anotherCard isKindOf: CardMorph)	ifTrue: [ ^(self face) == (anotherCard face) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
 
-!CardMorph methodsFor: 'comparing' stamp: 'KenD 10/20/2004 09:08'!
-hasSameSuitAs: anotherCard	"Answer true if anotherCard has the same suit"		(anotherCard isCardMorph)	ifTrue: [ ^(self suit) == (anotherCard suit) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
+!CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
+hasSameSuitAs: anotherCard	"Answer true if anotherCard has the same suit"		(anotherCard isKindOf: CardMorph)	ifTrue: [ ^(self suit) == (anotherCard suit) ]	ifFalse: [ Error signal: 'Expected an CardMorph, got: ', (anotherCard asString) ].! !
 
 !CardMorph methodsFor: 'comparing' stamp: 'KenD 10/18/2004 05:11'!
 hash	"because = is implemented"	^ (self cardNumber) hash.! !
@@ -586,6 +614,34 @@ makeFaceDown	self isFaceDown ifFalse: [ self flip ]! !
 
 !CardMorph methodsFor: 'display' stamp: 'KenD 11/19/2004 11:41'!
 makeFaceUp	self isFaceUp ifFalse: [ self flip ]! !
+
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:20'!
+mouseDown: evt 
+	"Do nothing upon mouse-down except inform the hand to watch for a 
+	double-click; wait until an ensuing click:, doubleClick:, or drag: 
+	message gets dispatched"
+	| container |
+	container := self owner.
+	(container isKindOf: CardContainerMorph)
+		ifFalse: [^ self].
+	(container okToPickUp: self) | (container isKindOf: CardDeckMorph)
+	ifFalse: [^ self]
+	ifTrue: [
+		(container okToPickUp: self)
+		ifTrue: [ 
+			evt hand waitForClicksOrDrag: self 
+					 event: evt 
+					 clkSel: #click:localPosition:
+					 dblClkSel: nil
+		]
+		ifFalse: [  "I may accept a click even if not able to be picked up"
+			evt hand waitForClicksOrDrag: self 
+					 event: evt 
+					 clkSel: #click:localPosition:
+					 dblClkSel: nil
+		]
+	]
+! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:44'!
 name	"e.g. Jack of Hearts"	^((self face) asString), ' of ', ((self suit) asString)! !
@@ -665,29 +721,29 @@ the: face of: suit	"Return an Card instance"		"CardMorph the: #Jack of: #Hear
 !CardMorph class methodsFor: 'accessing' stamp: 'KenD 10/21/2004 17:59'!
 width	"Answer the image width"	^(FormsArray at: 53) width! !
 
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:37'!
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:09'!
 addCard: aCard
 	"Add a Card to me"
 
 	"my cards are all face up"
 	aCard makeFaceUp.
-	aCard morphPosition: 0 @ 0.
+	aCard morphPosition: ContainerOffset.
 	super addMorph: aCard
 	
 ! !
 
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:36'!
-addCards: aCardCollectionOrContainer	"Add a collection of CardMorphs to the top of my Pile"	| aCollection |	(aCardCollectionOrContainer isCardContainer)	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]	ifFalse: [ aCollection := aCardCollectionOrContainer ].		"I assume checking for legality has alreade been done"	aCollection do: [ :aCard |
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:11'!
+addCards: aCardCollectionOrContainer	"Add a collection of CardMorphs to the top of my Pile"	| aCollection |	(aCardCollectionOrContainer isKindOf: CardContainerMorph)	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]	ifFalse: [ aCollection := aCardCollectionOrContainer ].		"I assume checking for legality has alreade been done"	aCollection do: [ :aCard |
 		 aCard makeFaceUp. 
-		aCard morphPosition: 0 @ 0.  
+		aCard morphPosition: ContainerOffset.  
 		self addMorph: aCard].	^aCardCollectionOrContainer! !
 
 !CardPileMorph methodsFor: 'initialization' stamp: 'KenD 1/20/2011 18:45'!
 initialize	"Set layout so that only the top card is shown"	super initialize! !
 
-!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:40'!
+!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:10'!
 addCard: aCard	"Add a Card to me if I am empty."	"I assume checking for legality of drop has already been done"	(self submorphs size = 0)	ifTrue: [ aCard makeFaceUp.
-			aCard morphPosition: 2 @ 2. 		      ^self addMorph: aCard 	]	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]! !
+			aCard morphPosition: ContainerOffset. 		      ^self addMorph: aCard 	]	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]! !
 
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 17:17'!
 addingCardOrCards: cardMorph toContainer: cardContainer	"Container is about to add a Card or Cards.  Make undo action."		"If we had BlockClosures...	| startContainer |	startContainer := self moveStart.	[ :table | table animateMoveFrom: cardContainer to: startContainer moving: someCard ]	until then..."	self inUndo	ifFalse: [self pushUndoObject: (CardUndoAction from: cardContainer 												to: (self moveStart) 												moving: cardMorph)]! !
@@ -831,8 +887,8 @@ setUp	jackOfClubs      := CardMorph the: #Jack of: #Clubs.	aceOfSpades      :=
 !CardTests methodsFor: 'Testing' stamp: 'KenD 10/20/2004 10:23'!
 testColor	self assert: (jackOfClubs color == #Black).	self assert: (twoOfDiamonds color == #Red).	self assert: (threeOfHearts color == #Red).	self assert: (aceOfSpades color == #Black).	self assert: (fiveOfHearts color == #Red).		self assert: (jackOfClubs hasSameColorAs: aceOfSpades).	self assert: (fiveOfHearts hasSameColorAs: twoOfDiamonds).	self deny:  (fiveOfHearts hasSameColorAs: aceOfSpades).	self deny:  (jackOfClubs hasSameColorAs: threeOfHearts).		self assert: (jackOfClubs     isBlack).	self assert: (twoOfDiamonds isRed).	self deny:  (jackOfClubs     isRed).	self deny:  (twoOfDiamonds isBlack)! !
 
-!CardTests methodsFor: 'Testing' stamp: 'KenD 10/20/2004 10:29'!
-testComparisons	self deny: (jackOfClubs < aceOfSpades).	self deny: (jackOfClubs = aceOfSpades).	self assert: (aceOfSpades <  jackOfClubs).	self assert: (threeOfHearts = (CardMorph the: 3 of: #hearts)).		self assert: (aceOfSpades hasDifferentColorThan: threeOfHearts).	self deny: (fiveOfHearts hasDifferentColorThan: twoOfDiamonds).		self deny: (aceOfSpades hasSameColorAs: threeOfHearts).	self assert: (fiveOfHearts hasSameColorAs: twoOfDiamonds).		self deny: (aceOfSpades hasSameFaceAs: threeOfHearts).	self assert: (fiveOfHearts hasSameFaceAs: (CardMorph the: 5 of: #Hearts)).		self deny: (aceOfSpades hasSameSuitAs: threeOfHearts).	self assert: (fiveOfHearts hasSameSuitAs: threeOfHearts).		self deny: (#randomSymbol isCardMorph).	self assert: (aceOfSpades isCardMorph)! !
+!CardTests methodsFor: 'Testing' stamp: 'KenD 1/10/2013 13:45'!
+testComparisons	self deny: (jackOfClubs < aceOfSpades).	self deny: (jackOfClubs = aceOfSpades).	self assert: (aceOfSpades <  jackOfClubs).	self assert: (threeOfHearts = (CardMorph the: 3 of: #hearts)).		self assert: (aceOfSpades hasDifferentColorThan: threeOfHearts).	self deny: (fiveOfHearts hasDifferentColorThan: twoOfDiamonds).		self deny: (aceOfSpades hasSameColorAs: threeOfHearts).	self assert: (fiveOfHearts hasSameColorAs: twoOfDiamonds).		self deny: (aceOfSpades hasSameFaceAs: threeOfHearts).	self assert: (fiveOfHearts hasSameFaceAs: (CardMorph the: 5 of: #Hearts)).		self deny: (aceOfSpades hasSameSuitAs: threeOfHearts).	self assert: (fiveOfHearts hasSameSuitAs: threeOfHearts).		self deny: (#randomSymbol isKindOf: CardMorph).	self assert: (aceOfSpades isKindOf: CardMorph)! !
 
 !CardTests methodsFor: 'Testing' stamp: 'KenD 10/20/2004 09:55'!
 testFace	self assert: (jackOfClubs face == #Jack).	self assert: (twoOfDiamonds face == #Two).	self assert: (threeOfHearts face == #Three).	self assert: (aceOfSpades face == #Ace).	self assert: (fiveOfHearts face == #Five)! !
@@ -891,8 +947,8 @@ labelStringMorph	self allMorphsDo: [:m | (m isKindOf: StringMorph) ifTrue: [^m
 !EnableDisableButton class methodsFor: 'as yet unclassified' stamp: 'KenD 6/23/2011 22:03'!
 includeInNewMorphMenu	^ false! !
 
-!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 7/15/2011 16:43'!
-column: columnMorph wantsDropOf: aCardOrColumnMorph 	"Answer true if Column is empty or if (lowest)	card is opposit color and one higher in face value."		"Ignore other game card instances"	(self isMyCard: aCardOrColumnMorph) ifFalse: [^false]. 		aCardOrColumnMorph isCardMorph		ifTrue: [| topCard | 			topCard := columnMorph topCard.			topCard isNil			ifTrue: [^true]			ifFalse: [ ^ (aCardOrColumnMorph hasFaceOneLessThan: topCard)					& (topCard hasDifferentColorThan: aCardOrColumnMorph)]]		ifFalse: [			Error signal: '@@FIXME: implement for column drops!!'.			^ false]! !
+!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 13:46'!
+column: columnMorph wantsDropOf: aCardOrColumnMorph 	"Answer true if Column is empty or if (lowest)	card is opposit color and one higher in face value."		"Ignore other game card instances"	(self isMyCard: aCardOrColumnMorph) ifFalse: [^false]. 		(aCardOrColumnMorph isKindOf: CardMorph)		ifTrue: [| topCard | 			topCard := columnMorph topCard.			topCard isNil			ifTrue: [^true]			ifFalse: [ ^ (aCardOrColumnMorph hasFaceOneLessThan: topCard)					& (topCard hasDifferentColorThan: aCardOrColumnMorph)]]		ifFalse: [			Error signal: '@@FIXME: implement for column drops!!'.			^ false]! !
 
 !FreeCell methodsFor: 'accessing' stamp: 'KenD 10/22/2004 18:51'!
 columns	"Private -- Answer my columns"	^columns! !
@@ -900,8 +956,9 @@ columns	"Private -- Answer my columns"	^columns! !
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 7/15/2011 16:50'!
 container: aContainerMorph wantsDropOf: aCardOrColumnMorph 	"Answer true if legal drop by FreeCell game rules"	| dropObjectClass |		"Ignore other game card instances"	(self isMyCard: aCardOrColumnMorph) ifFalse: [^false]. 		dropObjectClass := aCardOrColumnMorph class.	(dropObjectClass = CardColumnMorph) | (aCardOrColumnMorph isKindOf: CardMorph)	ifFalse: [ ^false ]	ifTrue: [ aContainerMorph class = CardSpareMorph		ifTrue: [^ self spare: aContainerMorph wantsDropOf: aCardOrColumnMorph]		ifFalse: [aContainerMorph class = CardPileMorph				ifTrue: [^ self pile: aContainerMorph wantsDropOf: aCardOrColumnMorph]				ifFalse: [aContainerMorph class = CardColumnMorph						ifTrue: [^ self column: aContainerMorph wantsDropOf: aCardOrColumnMorph]						ifFalse: [^ false]]]]! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/24/2011 04:10'!
-dealCards	"Deal all cards onto the table by adding them to Card Columns."	self deck shuffle.	0 to: 51		do: [ :n |  			(columns at: (n rem: NumColumns) + 1) addCard: (deck dealACard) ]			! !
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/10/2013 14:35'!
+dealCards	"Deal all cards onto the table by adding them to Card Columns."	self deck shuffle.	0 to: 51		do: [ :n |  			(columns at: (n rem: NumColumns) + 1) 
+				addCard: (deck dealACard makeFaceUp) ]			! !
 
 !FreeCell methodsFor: 'accessing' stamp: 'KenD 10/22/2004 15:03'!
 deck	"Private -- Answer my deck"	^deck! !
@@ -921,8 +978,9 @@ initialize	"Setup my layout.  Across the top are 4 Spares and 4 Piles,	then a 
 !FreeCell methodsFor: 'testing' stamp: 'KenD 7/2/2011 11:06'!
 isMyCard: aCard	"Answer true if card is asssociated with this instance of the game"	^self deck contains: aCard! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:14'!
-makeColumnArea	"I make new Column Area as a submorph"	| columnArea columnHeight columnLayout spacerLayout noColor|	noColor := Color transparent.	columnHeight := 510. "pixels"	columnArea :=  LayoutMorph newRow separation: 10.  "a row of columns"	columnArea padding: #center;			      color: noColor;				morphHeight: columnHeight;				morphWidth: (self morphWidth).	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.		spacerLayout := LayoutSpec  proportionalWidth: 0.2									fixedHeight: columnHeight									minorDirectionPadding: #center.										columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)				layoutSpec: spacerLayout.			1 to: NumColumns 		do: [ :n |			| colMorph |			colMorph := CardColumnMorph new initialize. 			colMorph morphHeight: columnHeight;					  borderColor: noColor;					  layoutSpec: columnLayout.			columnArea addMorph: colMorph.			columnArea  addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor) 						 layoutSpec:  spacerLayout.			].	columns := (columnArea submorphs select: [ :whatever | whatever isCardContainer ]) reversed..	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/10/2013 13:44'!
+makeColumnArea	"I make new Column Area as a submorph"	| columnArea columnHeight columnLayout spacerLayout noColor|	noColor := Color transparent.	columnHeight := 510. "pixels"	columnArea :=  LayoutMorph newRow separation: 10.  "a row of columns"	columnArea padding: #center;			      color: noColor;				morphHeight: columnHeight;				morphWidth: (self morphWidth).	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.		spacerLayout := LayoutSpec  proportionalWidth: 0.2									fixedHeight: columnHeight									minorDirectionPadding: #center.										columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)				layoutSpec: spacerLayout.			1 to: NumColumns 		do: [ :n |			| colMorph |			colMorph := CardColumnMorph new initialize. 			colMorph morphHeight: columnHeight;					  borderColor: noColor;					  layoutSpec: columnLayout.			columnArea addMorph: colMorph.			columnArea  addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor) 						 layoutSpec:  spacerLayout.			].	columns := (columnArea submorphs 
+					select: [ :whatever | whatever isKindOf: CardContainerMorph ]) reversed..	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
 
 !FreeCell methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:00'!
 makePilesArea	"answer a new Piles Area as a submorph"	| pilesArea  noColor |		noColor := Color transparent.		pilesArea :=  LayoutMorph newRow separation: 10.	pilesArea padding: #center;			  color: noColor.	"Card Spares"	1 to: NumSpares 		do: [ :n |  | spare |			spare := CardSpareMorph new initialize; 						borderColor: Color brown;						setBalloonText: 'A Spare can hold 1 card'.			pilesArea addMorph: spare ].			spares := (pilesArea submorphs select: [:thing | thing isKindOf: CardSpareMorph]) reversed.	"Collection Piles"	1 to: NumPiles 		do: [ :n |  | pile |			pile := CardPileMorph new initialize;					setBalloonText: 'Build up a suit in order from the Ace.' .			pilesArea addMorph: pile ].		piles := (pilesArea submorphs select: [:thing | thing isKindOf: CardPileMorph]) reversed.		self addMorph: pilesArea 		layoutSpec: (LayoutSpec  fixedWidth: self morphWidth									fixedHeight: CardMorph morphHeight + 30 									minorDirectionPadding: #center)	! !
@@ -951,8 +1009,9 @@ piles	"Private -- Answer my piles"	^piles! !
 !FreeCell methodsFor: 'actions' stamp: 'KenD 10/28/2004 15:17'!
 quit	"@@ToDo: popup dialog Do you REALLY want to Quit?"		super quit! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/24/2011 02:09'!
-reDealCards	"Deal all cards onto the table withot shuffling (for game replay)."	"Assumes cards have been removed first."	0 to: 51		do: [ :n |  			(columns at: (n rem: NumColumns) + 1) addCard: (deck dealACard) ]			! !
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/10/2013 14:34'!
+reDealCards	"Deal all cards onto the table withot shuffling (for game replay)."	"Assumes cards have been removed first."	0 to: 51		do: [ :n |  			(columns at: (n rem: NumColumns) + 1) 
+				addCard: (deck dealACard makeFaceUp) ]			! !
 
 !FreeCell methodsFor: 'actions' stamp: 'KenD 10/28/2004 15:15'!
 removeCards	"Empty out my Card Containers."		self piles do: [ :container | container makeEmpty ].	self spares do: [ :container | container makeEmpty ].	self columns do: [ :container | container makeEmpty ]! !
@@ -984,8 +1043,10 @@ descriptionForPartsBin	^ self		partName: 'FreeCell'		categories: #('Games' )
 !FreeCell class methodsFor: 'class initialization' stamp: 'KenD 10/25/2004 08:16'!
 includeInNewMorphMenu	^ true! !
 
-!FreeCell class methodsFor: 'class initialization' stamp: 'KenD 1/24/2011 04:25'!
-initialize	NumColumns := 8.	NumSpares := 4.	NumPiles := 4.	^self! !
+!FreeCell class methodsFor: 'class initialization' stamp: 'KenD 1/10/2013 14:07'!
+initialize
+	"self initialize"	NumColumns _ 8.	NumSpares   _ 4.	NumPiles       _ 4.
+	^self! !
 
 !FreeCell class methodsFor: 'instance creation' stamp: 'KenD 1/9/2013 19:47'!
 newGame	"Answer a new instance"	"
@@ -999,11 +1060,12 @@ animateMoveFrom: aContainer to: otherContainer moving: someCard	"Do the animati
 !Klondike methodsFor: 'accessing' stamp: 'KenD 11/19/2004 12:18'!
 cardDeck	^cardDeck! !
 
-!Klondike methodsFor: 'event handling' stamp: 'KenD 1/24/2011 02:09'!
-click: evt from: deckMorph	"Handle click events from CardDeckMorph."		(deckMorph isKindOf: CardDeckMorph)	ifFalse: [ ^false ].	"ifEmpty, reclaim Cards from Discards, else deal 3 Cards to Discards."	deckMorph isEmpty	ifFalse: [ | bottomCard |			bottomCard := deckMorph topCard. "bottom in undo"			1 to: (3 min: deckMorph numCards) 				do: [ :ignored | discards addCard: deckMorph takeTopCard ].							self pushUndoObject: (CardUndoAction from: discards												to: deckMorph												moving: bottomCard)	]	ifTrue: [		[ discards isEmpty ]			whileFalse: [ deck addCard: discards takeTopCard ].		self pushUndoObject: (CardUndoAction from: deckMorph 												to: discards												moving: nil "special case") 	]	! !
+!Klondike methodsFor: 'event handling' stamp: 'KenD 1/10/2013 14:54'!
+click: evt from: deckMorph	"Handle click events from CardDeckMorph."	
+	(deckMorph isKindOf: CardDeckMorph)	ifFalse: [ ^false ].	"ifEmpty, reclaim Cards from Discards, else deal 3 Cards to Discards."	deckMorph isEmpty	ifFalse: [ | bottomCard |			bottomCard := deckMorph topCard. "bottom in undo"			1 to: (3 min: deckMorph numCards) 				do: [ :ignored | discards addCard: deckMorph takeTopCard ].							self pushUndoObject: (CardUndoAction from: discards												to: deckMorph												moving: bottomCard)	]	ifTrue: [		[ discards isEmpty ]			whileFalse: [ deck addCard: discards takeTopCard ].		self pushUndoObject: (CardUndoAction from: deckMorph 												to: discards												moving: nil "special case") 	]	! !
 
-!Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 7/2/2011 13:22'!
-column: columnMorph wantsDropOf: aCardOrColumnMorph 	"Answer true if Column is empty and Card is a King or if (lowest)	card is opposit color and one higher in face value."		"Ignore other game card instances"	(self isMyCard: aCardOrColumnMorph) ifFalse: [^false]. 		aCardOrColumnMorph isCardMorph		ifTrue: [| topCard | 			topCard := columnMorph topCard.			topCard isNil			ifTrue: [^ aCardOrColumnMorph face = #King ]			ifFalse: [ ^ (aCardOrColumnMorph hasFaceOneLessThan: topCard)					& (topCard hasDifferentColorThan: aCardOrColumnMorph)]]		ifFalse: [			Error signal: '@@FIXME: implement for column drops!!'.			^ false]! !
+!Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 13:46'!
+column: columnMorph wantsDropOf: aCardOrColumnMorph 	"Answer true if Column is empty and Card is a King or if (lowest)	card is opposit color and one higher in face value."		"Ignore other game card instances"	(self isMyCard: aCardOrColumnMorph) ifFalse: [^false]. 		(aCardOrColumnMorph isKindOf: CardMorph)		ifTrue: [| topCard | 			topCard := columnMorph topCard.			topCard isNil			ifTrue: [^ aCardOrColumnMorph face = #King ]			ifFalse: [ ^ (aCardOrColumnMorph hasFaceOneLessThan: topCard)					& (topCard hasDifferentColorThan: aCardOrColumnMorph)]]		ifFalse: [			Error signal: '@@FIXME: implement for column drops!!'.			^ false]! !
 
 !Klondike methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:40'!
 columns	"Private -- Answer my columns"	^columns! !
@@ -1035,8 +1097,8 @@ initialize	"Setup my layout.  Down the column are 	Label, 	Deck, Discards and
 !Klondike methodsFor: 'testing' stamp: 'KenD 7/2/2011 13:23'!
 isMyCard: aCard	"Answer true if card is asssociated with this instance of the game"	^self cardDeck contains: aCard! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:12'!
-makeColumnArea	"I make new Column Area as a submorph"	| columnArea columnHeight columnLayout spacerLayout noColor|	noColor := Color transparent.	columnHeight := 510. "pixels"	columnArea := LayoutMorph newRow.  "a row of columns"	columnArea color: Color transparent;				morphHeight: columnHeight;				morphWidth: (self morphWidth).	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.		spacerLayout := LayoutSpec  proportionalWidth: 0.2 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.										columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)				layoutSpec: spacerLayout.						1 to: NumColumns 		do: [ :n |			| colMorph |			colMorph := CardColumnMorph new initialize. 			colMorph morphHeight: columnHeight;					  borderColor: Color transparent;					  layoutSpec: columnLayout.			columnArea addMorph: colMorph.			columnArea  addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor)						 layoutSpec: spacerLayout			].	columns := (columnArea submorphs select: [ :whatever | whatever isCardContainer ]) reversed..	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
+!Klondike methodsFor: 'initialization' stamp: 'KenD 1/10/2013 13:42'!
+makeColumnArea	"I make new Column Area as a submorph"	| columnArea columnHeight columnLayout spacerLayout noColor|	noColor := Color transparent.	columnHeight := 510. "pixels"	columnArea := LayoutMorph newRow.  "a row of columns"	columnArea color: Color transparent;				morphHeight: columnHeight;				morphWidth: (self morphWidth).	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.		spacerLayout := LayoutSpec  proportionalWidth: 0.2 									 fixedHeight: columnHeight									 minorDirectionPadding: #center.										columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)				layoutSpec: spacerLayout.						1 to: NumColumns 		do: [ :n |			| colMorph |			colMorph := CardColumnMorph new initialize. 			colMorph morphHeight: columnHeight;					  borderColor: Color transparent;					  layoutSpec: columnLayout.			columnArea addMorph: colMorph.			columnArea  addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor)						 layoutSpec: spacerLayout			].	columns := (columnArea submorphs select: [ :whatever | whatever isKindOf: CardContainerMorph ]) reversed..	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
 
 !Klondike methodsFor: 'initialization' stamp: 'KenD 1/9/2013 21:24'!
 makePilesArea	"answer a new Piles Area as a submorph"	| pilesArea noColor |		noColor := Color transparent.	pilesArea :=  LayoutMorph newRow separation: 10.	pilesArea color: noColor.		"spacer"	pilesArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor; morphWidth: 40)			  layoutSpec: (LayoutSpec  fixedWidth: 40									 fixedHeight: (CardMorph morphHeight + 4)).	"deck"	deck := CardDeckMorph new initialize;					setBalloonText: 'Tap top card to discard 3 or redeal.'.	cardDeck := CardDeck new initializeWithScale:1. "@@@TEST@@"	deck addCards: cardDeck.	pilesArea addMorph: deck.		"discards pile"	discards := CardDiscardMorph new initialize;					numCardsToShow: 3;					setBalloonText: 'Play top Discard.'.	pilesArea addMorph: discards.		"spacer"	pilesArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor; morphWidth: 20)			  layoutSpec: (LayoutSpec  fixedWidth: 20									 fixedHeight: (CardMorph morphHeight + 4)).				"trarget piles"	1 to: NumPiles do: [ :n | 		| pile |		pile := CardPileMorph new initialize;					setBalloonText: 'Build up a suit in order from the Ace.'.		pilesArea addMorph: pile ].	piles := (pilesArea submorphs select: [:thing | thing isKindOf: CardPileMorph]) reversed.		self addMorph: pilesArea 		layoutSpec: (LayoutSpec fixedWidth: self morphWidth									fixedHeight: CardMorph morphHeight + 30 									minorDirectionPadding: #center).! !
@@ -1200,6 +1262,7 @@ valuesArray: newArray	"PRIVATE"		| oldArray |	oldArray := valuesArray.	valu
 !Stack class methodsFor: 'private' stamp: 'KenD 5/14/2002 11:10'!
 with: anObject 	"Returns a new Stack with anObject."	^ self new initialize;		push: anObject;		yourself! !
 CardColumnMorph initialize!
+CardContainerMorph initialize!
 CardDiscardMorph initialize!
 CardMorph initialize!
 FreeCell initialize!
