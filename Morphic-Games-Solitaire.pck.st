@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 11 January 2013 at 7:11:36 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 13 January 2013 at 4:24:43 pm'!
 'Description Please enter a description for this package '!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -384,13 +384,16 @@ Structure:
 valuesArray grows by doubling; no shrinkage at present.
 Initial purpose in life is to support SmallScheme dynamic variables.!
 
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:31'!
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:51'!
 addCard: aCard
 
+	| newPos |
 	(self isEmpty)
-	      ifTrue: [aCard morphPosition: 0 @ 0]
-		ifFalse: [aCard morphPosition: (0 @ (PixelsPerOverlap * self numberOfCards))].
-	self addMorph: aCard! !
+	      ifTrue: [newPos := 0 @ 0]
+		ifFalse: [newPos := (0 @ (PixelsPerOverlap * self numberOfCards))].
+	self addMorph: aCard.
+	aCard morphPosition: newPos.
+	self! !
 
 !CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 13:43'!
 addCards: aCardCollectionOrContainer
@@ -530,12 +533,15 @@ acceptDroppingMorph: aMorph event: evt
 		ifTrue: [ aMorph submorphs do: [:m | self addCard: m]]
 		! !
 
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:18'!
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
 addCard: aCard
 	"Add a Card to me"
 
 	"I assume checking for legality of drop has already been done"
-	self addMorph: aCard
+	self addMorph: aCard.
+	aCard morphPosition: 0 @ 0.
+	self
+
 ! !
 
 !CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
@@ -939,14 +945,6 @@ makeEmpty
 	cardStack := Stack new initialize.
 	^self! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:04'!
-mouseDown: evt 
-	"Do nothing upon mouse-down except inform the hand to watch for a 
-	click; wait until an ensuing #click: message gets dispatched"
-	
-	evt hand waitForClicksOrDrag: self
-				event: evt clkSel: #click:localPosition: dblClkSel:nil.! !
-
 !CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 19:02'!
 mouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
@@ -1056,16 +1054,18 @@ acceptDroppingMorph: aCardMorph event: evt
 			]
 	]! !
 
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 17:22'!
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 16:20'!
 addCard: aCard
 	"Add a Card to me"
 
+	| newPos |
 	"All my Cards are face up"
 	aCard makeFaceUp.
- 	aCard morphPosition: (PixelOverlap * (self numCards rem: 3) @ 0).
+	newPos := (((PixelOverlap * (self numCards  rem: 3)) + 2) @ 2).
 	self addMorph: aCard;
-		showTopCards;
-		yourself! !
+		showTopCards.
+ 	aCard morphPosition: newPos.
+	self! !
 
 !CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 17:50'!
 cardStack
@@ -1249,7 +1249,7 @@ newShowing: numCards
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/9/2013 16:29'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/13/2013 16:12'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
@@ -1257,6 +1257,7 @@ aboutToBeGrabbedBy: aHand
 
 	(self owner isKindOf: CardDeckMorph) | (self owner isNil)
 	ifFalse: [
+		Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name ).
 		super aboutToBeGrabbedBy: aHand.
 		self collectCardsAboveMe
 	]
@@ -1282,11 +1283,12 @@ cardNumber
 
 	^cardNumber! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/11/2013 18:58'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/13/2013 16:05'!
 click: evt localPosition: localEventPosition
 	"ignore this and wait until #firstClickTimedOut: arrives"
 
-	Transcript newLine; show: (self name , ' got click').
+"	Transcript newLine; show: (self name , ' got click').  @@DEBUG@@"
+	
 	(self owner isKindOf: CardDeckMorph)
 	ifTrue: [ self owner click: evt localPosition: localEventPosition ]
 	ifFalse: [ ^false ]! !
@@ -1447,8 +1449,8 @@ makeFaceUp
 
 	self isFaceUp ifFalse: [ self flip ]! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/11/2013 18:35'!
-mouseDown: evt 
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/13/2013 13:26'!
+mouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
 	message gets dispatched"
@@ -1456,45 +1458,18 @@ mouseDown: evt
 	container := self owner.
 	(container isKindOf: CardContainerMorph)
 		ifFalse: [^ self].
-	containerOKsPickup _ container okToPickUp: self.
+	containerOKsPickup := (container okToPickUp: self).
 	containerOKsPickup | (container isKindOf: CardDeckMorph)
 	ifFalse: [^ self]
 	ifTrue: [
 		containerOKsPickup
 		ifTrue: [ 
-			evt hand waitForClicksOrDrag: self 
+			self world activeHand attachMorph: self.  "@@@TEST@@@"
+"			evt hand waitForClicksOrDrag: self 
 					 event: evt 
 					 clkSel: #click:localPosition:
 					 dblClkSel: nil
-		]
-		ifFalse: [  "I may accept a click even if not able to be picked up"
-			evt hand waitForClicksOrDrag: self 
-					 event: evt 
-					 clkSel: #click:localPosition:
-					 dblClkSel: nil
-		]
-	]
-! !
-
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 19:07'!
-mouseDown: evt localPosition: localEventPosition
-	"Do nothing upon mouse-down except inform the hand to watch for a 
-	double-click; wait until an ensuing click:, doubleClick:, or drag: 
-	message gets dispatched"
-	| container |
-	container := self owner.
-	(container isKindOf: CardContainerMorph)
-		ifFalse: [^ self].
-	(container okToPickUp: self) | (container isKindOf: CardDeckMorph)
-	ifFalse: [^ self]
-	ifTrue: [
-		(container okToPickUp: self)
-		ifTrue: [ 
-			evt hand waitForClicksOrDrag: self 
-					 event: evt 
-					 clkSel: #click:localPosition:
-					 dblClkSel: nil
-		]
+"		]
 		ifFalse: [  "I may accept a click even if not able to be picked up"
 			evt hand waitForClicksOrDrag: self 
 					 event: evt 
@@ -4242,18 +4217,18 @@ width
 	"Answer the image width"
 	^(FormsArray at: 53) width! !
 
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:09'!
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:48'!
 addCard: aCard
 	"Add a Card to me"
 
 	"my cards are all face up"
 	aCard makeFaceUp.
-	aCard morphPosition: ContainerOffset.
-	super addMorph: aCard
+	self addMorph: aCard. "Nota Bene: resets location!!!!"
+	aCard morphPosition: ContainerOffset
 	
 ! !
 
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:11'!
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:44'!
 addCards: aCardCollectionOrContainer
 	"Add a collection of CardMorphs to the top of my Pile"
 
@@ -4264,9 +4239,10 @@ addCards: aCardCollectionOrContainer
 	
 	"I assume checking for legality has alreade been done"
 	aCollection do: [ :aCard |
-		 aCard makeFaceUp. 
+		aCard makeFaceUp. 
+		self addMorph: aCard.
 		aCard morphPosition: ContainerOffset.  
-		self addMorph: aCard].
+	].
 	^aCardCollectionOrContainer
 ! !
 
@@ -4276,15 +4252,16 @@ initialize
 
 	super initialize! !
 
-!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:10'!
+!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:49'!
 addCard: aCard
 	"Add a Card to me if I am empty."
 
 	"I assume checking for legality of drop has already been done"
 	(self submorphs size = 0)
 	ifTrue: [ aCard makeFaceUp.
+		      self addMorph: aCard.
 			aCard morphPosition: ContainerOffset. 
-		      ^self addMorph: aCard 
+			^self
 	]
 	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]
 ! !
@@ -4304,12 +4281,13 @@ addingCardOrCards: cardMorph toContainer: cardContainer
 												to: (self moveStart) 
 												moving: cardMorph)]! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/13/2011 16:08'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 1/13/2013 15:15'!
 animateMoveFrom: aContainer to: aPile
 	"Animate move of the top Card in aPile into aContainer."
 
-	| topCard |
+	| topCard worldOrigin |
 	topCard := aContainer topCard.
+	worldOrigin := topCard morphBoundsInWorld origin.
 	
 	"Remove the card from its Container"
 	aContainer removeMorph: topCard.
@@ -4318,8 +4296,8 @@ animateMoveFrom: aContainer to: aPile
 	aContainer world displayWorld.
 	
 	"Animate the image move"
-	(topCard form) slideFrom: topCard bounds origin
-		to: aPile bounds origin
+	(topCard form) slideFrom: worldOrigin
+		to: aPile morphBoundsInWorld origin
 		nSteps: 38
 		delay: 10.
 		
@@ -5179,14 +5157,14 @@ helpText
 	The piles build up from the aces in the same suit.
 	 '! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 7/16/2011 16:11'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/13/2013 14:47'!
 initialize
 	"Setup my layout.  Across the top are 4 Spares and 4 Piles,
 	then a block of 8 Columns, then a Button area."
 
 	super initialize.
 
-	deck := CardDeck new initializeWithScale: 1.
+	deck := CardDeck new. " initializeWithScale: 1. @@TEST@@"
 	self makeLabelArea: 'FreeCell';
 		 makePilesArea;
 		 makeColumnArea;
@@ -5768,7 +5746,7 @@ makeColumnArea
 
 	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/9/2013 21:24'!
+!Klondike methodsFor: 'initialization' stamp: 'KenD 1/13/2013 14:47'!
 makePilesArea
 	"answer a new Piles Area as a submorph"
 
@@ -5786,7 +5764,7 @@ makePilesArea
 	"deck"
 	deck := CardDeckMorph new initialize;
 					setBalloonText: 'Tap top card to discard 3 or redeal.'.
-	cardDeck := CardDeck new initializeWithScale:1. "@@@TEST@@"
+	cardDeck := CardDeck new. " initializeWithScale:1. @@@TEST@@"
 	deck addCards: cardDeck.
 	pilesArea addMorph: deck.
 	
