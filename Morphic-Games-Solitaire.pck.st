@@ -1,5 +1,5 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 13 January 2013 at 4:24:43 pm'!
-'Description Please enter a description for this package '!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 14 January 2013 at 9:29:04 pm'!
+'Description Solitaire Card Game'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
 	instanceVariableNames: 'targetTable'
@@ -520,7 +520,7 @@ pixelsPerOverlap
 
 	^PixelsPerOverlap! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:16'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 17:27'!
 acceptDroppingMorph: aMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
@@ -528,9 +528,9 @@ acceptDroppingMorph: aMorph event: evt
 	| table |
 	table := targetTable.
 	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ].
+	self addCard: aMorph.
 	aMorph hasSubmorphs
-		ifFalse: [self addCard: aMorph]
-		ifTrue: [ aMorph submorphs do: [:m | self addCard: m]]
+		ifTrue: [ aMorph submorphs reverseDo: [:aCard | self addCard: aCard]]
 		! !
 
 !CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
@@ -852,7 +852,7 @@ acceptDroppingMorph: aCardMorph event: evt
 	table isNil ifTrue: [^ false].
 	table inUndo ifTrue: [ self addCard: aCardMorph ]! !
 
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 14:21'!
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 09:22'!
 addCard: aCard
 	"Add a Card or Cards to me"
 
@@ -863,7 +863,7 @@ addCard: aCard
 			aCard submorphs 
 				do: [ :card | 
 					aCard removeMorph: card.
-					card makeFaceDown.
+					card makeFaceDown. "By convention decks are face down"
 					card morphPosition: ContainerOffset.
 					cardStack push: card ].
 	].
@@ -985,7 +985,7 @@ saveStateToArray
 		anArray at: index put: ((anArray at: index) cardNumber) ].
 	^anArray! !
 
-!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/10/2013 14:27'!
+!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/14/2013 09:21'!
 showTopCard
 	"PRIVATE -- I am invoked whenever Cards are added to or removed from me."
 
@@ -994,7 +994,9 @@ showTopCard
 	self isEmpty
 	ifFalse: [ | topCard |
 		topCard := cardStack topValue.
-		topCard makeFaceUp.
+		self topIsFaceDown 
+		ifFalse: [topCard makeFaceUp]
+		ifTrue: [topCard makeFaceDown].
 		topCard morphPosition: ContainerOffset.
 		self addMorph: topCard  
 	].
@@ -1054,17 +1056,17 @@ acceptDroppingMorph: aCardMorph event: evt
 			]
 	]! !
 
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 16:20'!
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 17:14'!
 addCard: aCard
 	"Add a Card to me"
 
-	| newPos |
+	| |
 	"All my Cards are face up"
 	aCard makeFaceUp.
-	newPos := (((PixelOverlap * (self numCards  rem: 3)) + 2) @ 2).
+	"newPos := (((PixelOverlap * (self numCards  rem: 3)) + 2) @ 2)."
 	self addMorph: aCard;
 		showTopCards.
- 	aCard morphPosition: newPos.
+ 	"aCard morphPosition: newPos."
 	self! !
 
 !CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 17:50'!
@@ -1249,7 +1251,7 @@ newShowing: numCards
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/13/2013 16:12'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 17:16'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
@@ -1257,7 +1259,7 @@ aboutToBeGrabbedBy: aHand
 
 	(self owner isKindOf: CardDeckMorph) | (self owner isNil)
 	ifFalse: [
-		Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name ).
+		"Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name )."
 		super aboutToBeGrabbedBy: aHand.
 		self collectCardsAboveMe
 	]
@@ -1293,7 +1295,7 @@ click: evt localPosition: localEventPosition
 	ifTrue: [ self owner click: evt localPosition: localEventPosition ]
 	ifFalse: [ ^false ]! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/11/2013 18:29'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 21:18'!
 collectCardsAboveMe 
 	"I'm about to be grabbed by the hand or otherwise moved. 
 	If other cards are above me in a Card Container, then move 
@@ -1306,6 +1308,9 @@ collectCardsAboveMe
 	(cards copyFrom: 1 to: idx - 1)
 		do: [:m | m class = self class
 				ifTrue: [self addMorphBack: m]].
+	"set my extent to include submorphs"
+	self morphExtent:
+		(self width @ (self height + (self submorphCount * (CardColumnMorph pixelsPerOverlap))))..
 	self redrawNeeded.! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:53'!
@@ -1320,11 +1325,6 @@ color
 	ifFalse: [(suitNum = 4)
 			ifTrue: [ ^#Black ]
 			ifFalse: [ ^#Red ]].! !
-
-!CardMorph methodsFor: 'access' stamp: 'KenD 10/18/2004 13:37'!
-extent
-
-	^self faceForm extent! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:37'!
 face
@@ -1431,10 +1431,13 @@ isFaceUp
 isRed
 	^(self suitColor) == #Red! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/29/2004 10:21'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 21:24'!
 justDroppedInto: aMorph event: anEvent
-	"Someone just dropped me.  Tell my container."
+	"Someone just dropped me.."
 	
+	"resize"
+	self morphExtent: self minimumExtent.
+	"Tell my container"
 	(self owner isKindOf: CardContainerMorph)
 	ifTrue: [ ^(self owner) dropComplete ]
 	ifFalse: [^ false]! !
@@ -1449,7 +1452,21 @@ makeFaceUp
 
 	self isFaceUp ifFalse: [ self flip ]! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/13/2013 13:26'!
+!CardMorph methodsFor: 'geometry' stamp: 'KenD 1/14/2013 20:34'!
+minimumExtent
+
+	^self faceForm extent
+! !
+
+!CardMorph methodsFor: 'geometry' stamp: 'KenD 1/14/2013 20:29'!
+morphExtent: aPoint
+	"assume it is always in our coordinates!!"
+	
+	"an argument for extent in forms"
+	self flag: #jmvVer2.
+	self basicExtent: aPoint! !
+
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/14/2013 17:24'!
 mouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
@@ -1463,13 +1480,11 @@ mouseDown: evt localPosition: localEventPosition
 	ifFalse: [^ self]
 	ifTrue: [
 		containerOKsPickup
-		ifTrue: [ 
-			self world activeHand attachMorph: self.  "@@@TEST@@@"
-"			evt hand waitForClicksOrDrag: self 
-					 event: evt 
-					 clkSel: #click:localPosition:
-					 dblClkSel: nil
-"		]
+		ifTrue: [ |hand|
+			hand := self runningWorld activeHand.
+			self aboutToBeGrabbedBy: hand.
+			hand attachMorph: self. 
+		]
 		ifFalse: [  "I may accept a click even if not able to be picked up"
 			evt hand waitForClicksOrDrag: self 
 					 event: evt 
