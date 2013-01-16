@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 15 January 2013 at 4:37:52 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 15 January 2013 at 8:28:14 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -1235,6 +1235,16 @@ newShowing: numCards
 	newDiscard numCardsToShow: numCards.
 	^newDiscard! !
 
+!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:18'!
+pixelOverlap
+
+	^PixelOverlap! !
+
+!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:19'!
+pixelsPerOverlap
+
+	^PixelOverlap! !
+
 !CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
 < aCard
 	"Absolute ordering over all cards in a 52 card deck."
@@ -1255,7 +1265,7 @@ newShowing: numCards
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 15:02'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 16:50'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
@@ -1265,7 +1275,8 @@ aboutToBeGrabbedBy: aHand
 	ifFalse: [
 		"Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name )."
 		super aboutToBeGrabbedBy: aHand.
-		self collectCardsAboveMe
+		self collectCardsAboveMe;
+		yourself
 	]
 ! !
 
@@ -1289,17 +1300,17 @@ cardNumber
 
 	^cardNumber! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 16:07'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 19:49'!
 click: evt localPosition: localEventPosition
 	"ignore this and wait until #firstClickTimedOut: arrives"
 
-	Transcript newLine; show: (self name , ' got click').  "@@DEBUG@@"
+"	Transcript newLine; show: (self name , ' got click').  @@DEBUG@@"
 	
 	(self owner isKindOf: CardDeckMorph)
 	ifTrue: [ self owner click: evt localPosition: localEventPosition ]
 	ifFalse: [ ^false ]! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 21:18'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 20:21'!
 collectCardsAboveMe 
 	"I'm about to be grabbed by the hand or otherwise moved. 
 	If other cards are above me in a Card Container, then move 
@@ -1313,8 +1324,20 @@ collectCardsAboveMe
 		do: [:m | m class = self class
 				ifTrue: [self addMorphBack: m]].
 	"set my extent to include submorphs"
-	self morphExtent:
-		(self width @ (self height + (self submorphCount * (CardColumnMorph pixelsPerOverlap))))..
+	(self owner isKindOf: CardColumnMorph)
+	ifTrue: [ 
+		self morphExtent:
+			(self width
+			 @	
+			 (self height + (self submorphCount * (
+							CardColumnMorph pixelsPerOverlap))))].
+	(self owner isKindOf: CardDiscardMorph)
+	ifTrue: [
+		self morphExtent:
+			(self width + (self submorphCount * (
+							CardDiscardMorph  pixelsPerOverlap)))
+			 @	
+			 (self height)]..
 	self redrawNeeded.! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:53'!
@@ -4348,7 +4371,7 @@ animateMoveFrom: aContainer to: aPile
 	"Give the card to otherContainer."
 	aPile acceptDroppingMorph: topCard event: nil! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 1/11/2013 17:04'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 1/15/2013 20:21'!
 animateMoveFrom: aContainer to: otherContainer moving: someCard
 	"Animate move of Card or Cards."
 
@@ -4357,13 +4380,13 @@ animateMoveFrom: aContainer to: otherContainer moving: someCard
 	someCard isNil
 	ifFalse: [
 		cardBounds := someCard morphBoundsInWorld. "bounds before removed"
-
+		
 		"Remove Cards from aContainer"
 		someCard collectCardsAboveMe.
 		cardForm := Form fromDisplay: someCard morphBoundsInWorld.
 		aContainer removeMorph: someCard.
 		someCard submorphs do: [ :card | aContainer removeMorph: card ].
-	
+
 		"Redraw to hide the image"
 		aContainer world displayWorld.
 		
