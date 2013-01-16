@@ -1,5 +1,5 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 14 January 2013 at 9:29:04 pm'!
-'Description Solitaire Card Game'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 15 January 2013 at 4:37:52 pm'!
+'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
 	instanceVariableNames: 'targetTable'
@@ -52,7 +52,7 @@ CardDiscardMorph class
 
 !classDefinition: #CardMorph category: #'Morphic-Games-Solitaire'!
 ImageMorph subclass: #CardMorph
-	instanceVariableNames: 'cardNumber'
+	instanceVariableNames: 'cardNumber grabPreowner'
 	classVariableNames: 'ColorNames FaceNames FormsArray SuitNames'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -224,11 +224,16 @@ You can pick up my topmost card.
 
 Cards not shown are kept in cardStack.!
 
-!CardMorph commentStamp: 'KenD 1/25/2011 17:43' prior: 0!
+!CardMorph commentStamp: '<historical>' prior: 0!
 CardMorph is an alternate implementation of a PlayingCardMorph.
 
 CardMorph the: #Ace of: #Clubs.
 CardMorph the: 3 of: #Hearts.
+
+IVARS:
+ cardNumber: 1..52
+  grabPreowner: When grabbed from CardContainer, goes back here on drop rejection
+
 
 Structure:
  SuitNames		Array of Symbol -- #(Clubs Diamonds Hearts Spades)
@@ -520,7 +525,7 @@ pixelsPerOverlap
 
 	^PixelsPerOverlap! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 17:27'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 16:28'!
 acceptDroppingMorph: aMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
@@ -529,8 +534,7 @@ acceptDroppingMorph: aMorph event: evt
 	table := targetTable.
 	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ].
 	self addCard: aMorph.
-	aMorph hasSubmorphs
-		ifTrue: [ aMorph submorphs reverseDo: [:aCard | self addCard: aCard]]
+	aMorph submorphs reverseDo: [:aCard | self addCard: aCard]
 		! !
 
 !CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
@@ -1251,12 +1255,12 @@ newShowing: numCards
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 17:16'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 15:02'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
 
-
+	self rememberPreowner.
 	(self owner isKindOf: CardDeckMorph) | (self owner isNil)
 	ifFalse: [
 		"Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name )."
@@ -1285,11 +1289,11 @@ cardNumber
 
 	^cardNumber! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/13/2013 16:05'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 16:07'!
 click: evt localPosition: localEventPosition
 	"ignore this and wait until #firstClickTimedOut: arrives"
 
-"	Transcript newLine; show: (self name , ' got click').  @@DEBUG@@"
+	Transcript newLine; show: (self name , ' got click').  "@@DEBUG@@"
 	
 	(self owner isKindOf: CardDeckMorph)
 	ifTrue: [ self owner click: evt localPosition: localEventPosition ]
@@ -1352,6 +1356,15 @@ flip
 	(self form == self backForm)
 	ifTrue: [ self image: (self faceForm) ]
 	ifFalse: [ self image: (self backForm) ]! !
+
+!CardMorph methodsFor: 'access' stamp: 'KenD 1/15/2013 15:02'!
+forgetPreowner
+	
+	grabPreowner  := nil! !
+
+!CardMorph methodsFor: 'access' stamp: 'KenD 1/15/2013 14:58'!
+grabPreowner
+	^grabPreowner ! !
 
 !CardMorph methodsFor: 'event handling' stamp: 'KenD 10/25/2004 09:57'!
 handlesMouseDown: evt 
@@ -1466,7 +1479,7 @@ morphExtent: aPoint
 	self flag: #jmvVer2.
 	self basicExtent: aPoint! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/14/2013 17:24'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 12:25'!
 mouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
@@ -1482,8 +1495,10 @@ mouseDown: evt localPosition: localEventPosition
 		containerOKsPickup
 		ifTrue: [ |hand|
 			hand := self runningWorld activeHand.
-			self aboutToBeGrabbedBy: hand.
-			hand attachMorph: self. 
+			(localEventPosition < self morphExtent )
+			ifTrue: [hand grabMorph: self] "Close to cursor"
+			ifFalse: [self aboutToBeGrabbedBy: hand. "Far from cursor"
+					hand attachMorph: self]
 		]
 		ifFalse: [  "I may accept a click even if not able to be picked up"
 			evt hand waitForClicksOrDrag: self 
@@ -1499,14 +1514,26 @@ name
 	"e.g. Jack of Hearts"
 	^((self face) asString), ' of ', ((self suit) asString)! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/9/2013 18:19'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 15:22'!
 rejectDropMorphEvent: evt
 	"Drop rejected. If have submorphs, give them back to the container."
 	
-	super rejectDropMorphEvent: evt.
-	(self owner isKindOf: CardContainerMorph) & (self submorphCount > 0)
-	ifTrue: [ self submorphs reverseDo: [ :m | self owner addMorph: m].
-			self redrawNeeded ]! !
+"	Transcript newLine; 
+		show: ('>>rejectDropMorphEvent>> :' ,self name , ', grabPreowner ' , self grabPreowner name ).
+"	
+	(self grabPreowner isKindOf: CardContainerMorph)
+	ifTrue: [self grabPreowner addCard: self.
+		 	self submorphs reverseDo: [ :m | self grabPreowner addCard: m].
+			(evt isNil) ifFalse: [evt wasHandled: true].
+			self redrawNeeded ]
+	ifFalse: [ super rejectDropMorphEvent: evt.].! !
+
+!CardMorph methodsFor: 'access' stamp: 'KenD 1/15/2013 15:01'!
+rememberPreowner
+	
+	(self owner isKindOf: CardContainerMorph )
+	ifTrue: [grabPreowner := self owner]
+	ifFalse: [grabPreowner  := nil] "no funny stuff.."! !
 
 !CardMorph methodsFor: 'private' stamp: 'KenD 1/29/2011 01:02'!
 saveImageToFile: aFileName
@@ -1558,22 +1585,24 @@ width
 
 	^self faceForm width! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/17/2011 20:07'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 14:57'!
 withCardNumber: cardNum
 	"Private"
 	
 	super initialize.
 	cardNumber := cardNum.
+	grabPreowner := nil.
 	self image: (self faceForm);
 		dragEnabled: true;
 		yourself! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 7/15/2011 16:07'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 14:57'!
 withCardNumber: cardNum image: form
 	"Private"
 	
 	super initialize.
 	cardNumber := cardNum.
+	grabPreowner := nil.
 	self image: form;
 		dragEnabled: true;
 		yourself! !
@@ -4494,7 +4523,7 @@ makeHelpButton
 		 (EnableDisableButton 
 			model: self stateGetter: nil action: #help label: 'Help')! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/9/2013 19:54'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 15:41'!
 makeLabelArea: lableString
 	"Make a new Button Area as a submorph"
 
@@ -4507,13 +4536,13 @@ makeLabelArea: lableString
 			emphasis: 1;  "emphasis: bold=1"
 			font: (AbstractFont familyName: 'DejaVu' pointSize: 22).
 			
-	labelMorph  layoutSpec: (LayoutSpec  proportionalWidth: 0.5 proportionalHeight: 1.0).
+	labelMorph  layoutSpec: (LayoutSpec  proportionalWidth: 0.9 proportionalHeight: 1.0).
 	
 	labelLayout
 			color: Color transparent;
 			"borderColor: Color transparent;"
 			morphHeight: 40;
-			morphWidth: (self morphWidth) - 4;
+			morphWidth: 700; " (self morphWidth) - 4;"
 			padding: #center;
 			addMorph: labelMorph.
 
@@ -4716,7 +4745,7 @@ saveGametoDataStream: aDataStream
 
 	Error signal: 'Subclass must implement!!'! !
 
-!CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/9/2013 18:23'!
+!CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/15/2013 16:00'!
 showWinnerText
 	"Display Winner Message to user"
 
@@ -4724,8 +4753,9 @@ showWinnerText
 	winnerText := (StringMorph contents: (CardTableMorph randomWinnerText))
 					emphasis: 1; "bold"
 					font:  (AbstractFont familyName: 'DejaVu' pointSize: 22).
-	winnerText color: Color blue
-				"bounds: labelLayout bounds"..
+	winnerText color: Color blue; 
+				layoutSpec: (LayoutSpec  proportionalWidth: 0.9 proportionalHeight: 1.0).
+
 	labelLayout removeAllMorphs;
 			      addMorph: winnerText.
 	winnerText lock.! !
