@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1549] on 15 January 2013 at 8:28:14 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1561] on 21 January 2013 at 10:23:59 am'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -606,15 +606,19 @@ numCards
 	"Answer the number of AltCardMorphs I contain."
 	^ self submorphCount! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:42'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:06'!
 okToPickUp: aCard
 	"Answer false unless I have a table, else ask the table."
 
-	| table |
+	| table result |
 	table := self targetTable.
 	table isNil
-		ifTrue: [^ false ]
-		ifFalse: [ ^(table pickLegalFor: aCard) ]! !
+		ifTrue: [ result :=  false ]
+		ifFalse: [ result := (table pickLegalFor: aCard) ].
+"
+	Transcript newLine; show: (self name , ' got #okToPickUp:  answered ' , result printString ).  
+"	
+	^ result! !
 
 !CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:14'!
 restoreFromArray: stateArray givenDeck: aDeck
@@ -896,12 +900,14 @@ addCards: aCollectionOrDeck
 	self showTopCard;
 	yourself! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 16:05'!
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 09:59'!
 click: evt localPosition: ignoredPosition
 	"Delegate to table, if available."
 	
 	| table |
-
+"
+	Transcript newLine; show: (self name , ' got #click:localPosition:'). 
+"
 	table := self targetTable.
 	table isNil
 		ifTrue: [^ false]
@@ -913,8 +919,11 @@ dropEnabled
 
 	^false! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 11/20/2004 17:40'!
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:00'!
 handlesMouseDown: evt 
+"
+	Transcript newLine; show: (self name , ' got #handlesMouseDown:').  
+"
 	^ true! !
 
 !CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 11/17/2004 11:32'!
@@ -949,14 +958,6 @@ makeEmpty
 	cardStack := Stack new initialize.
 	^self! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/10/2013 19:02'!
-mouseDown: evt localPosition: localEventPosition
-	"Do nothing upon mouse-down except inform the hand to watch for a 
-	click; wait until an ensuing #click: message gets dispatched"
-	
-	evt hand waitForClicksOrDrag: self
-				event: evt clkSel: #click:localPosition: dblClkSel:nil.! !
-
 !CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:17'!
 numCards
 
@@ -967,6 +968,16 @@ okToPickUp: aCard
 	"Never pick up a card from me"
 	
 	^false! !
+
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:00'!
+processMouseDown: evt localPosition: localEventPosition
+	"Do nothing upon mouse-down except inform the hand to watch for a 
+	click; wait until an ensuing #click: message gets dispatched"
+"
+	Transcript newLine; show: (self name , ' got #processMouseDown:localPosition:').  
+"
+	evt hand waitForClicksOrDrag: self
+				event: evt clkSel: #click:localPosition: dblClkSel:nil.! !
 
 !CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
 restoreFromArray: stateArray givenDeck: aDeck
@@ -1265,7 +1276,7 @@ pixelsPerOverlap
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 16:50'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:07'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
@@ -1273,11 +1284,14 @@ aboutToBeGrabbedBy: aHand
 	self rememberPreowner.
 	(self owner isKindOf: CardDeckMorph) | (self owner isNil)
 	ifFalse: [
-		"Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name )."
+"
+		Transcript newLine; show: ( self name , ' about to be grabbed by ' , aHand name ).
+"
 		super aboutToBeGrabbedBy: aHand.
 		self collectCardsAboveMe;
 		yourself
 	]
+	ifTrue: [^nil]
 ! !
 
 !CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/28/2004 14:07'!
@@ -1300,12 +1314,12 @@ cardNumber
 
 	^cardNumber! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 19:49'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:01'!
 click: evt localPosition: localEventPosition
 	"ignore this and wait until #firstClickTimedOut: arrives"
-
-"	Transcript newLine; show: (self name , ' got click').  @@DEBUG@@"
-	
+"
+	Transcript newLine; show: (self name , ' got #click:localPosition:'). 
+"
 	(self owner isKindOf: CardDeckMorph)
 	ifTrue: [ self owner click: evt localPosition: localEventPosition ]
 	ifFalse: [ ^false ]! !
@@ -1389,8 +1403,11 @@ forgetPreowner
 grabPreowner
 	^grabPreowner ! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 10/25/2004 09:57'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:01'!
 handlesMouseDown: evt 
+"
+	Transcript newLine; show: (self name , ' got #handlesMouseDown:').  
+"
 	^ true! !
 
 !CardMorph methodsFor: 'comparing' stamp: 'KenD 10/20/2004 10:31'!
@@ -1502,12 +1519,20 @@ morphExtent: aPoint
 	self flag: #jmvVer2.
 	self basicExtent: aPoint! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/15/2013 12:25'!
-mouseDown: evt localPosition: localEventPosition
+!CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:44'!
+name
+	"e.g. Jack of Hearts"
+	^((self face) asString), ' of ', ((self suit) asString)! !
+
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:01'!
+processMouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
 	message gets dispatched"
 	| container containerOKsPickup |
+"
+     Transcript newLine; show: (self name , ' got #processMouseDown:localPosition:').  
+"
 	container := self owner.
 	(container isKindOf: CardContainerMorph)
 		ifFalse: [^ self].
@@ -1532,18 +1557,14 @@ mouseDown: evt localPosition: localEventPosition
 	]
 ! !
 
-!CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:44'!
-name
-	"e.g. Jack of Hearts"
-	^((self face) asString), ' of ', ((self suit) asString)! !
-
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 15:22'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:07'!
 rejectDropMorphEvent: evt
 	"Drop rejected. If have submorphs, give them back to the container."
-	
-"	Transcript newLine; 
-		show: ('>>rejectDropMorphEvent>> :' ,self name , ', grabPreowner ' , self grabPreowner name ).
 "	
+	Transcript newLine; 
+		show: ('>>rejectDropMorphEvent>> :' ,self name ,
+		           ', grabPreowner ' , self grabPreowner name ).
+"
 	(self grabPreowner isKindOf: CardContainerMorph)
 	ifTrue: [self grabPreowner addCard: self.
 		 	self submorphs reverseDo: [ :m | self grabPreowner addCard: m].
@@ -4333,6 +4354,17 @@ addCard: aCard
 	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]
 ! !
 
+!CardTableMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:03'!
+aboutToBeGrabbedBy: aHand 
+	"I'm about to be grabbed by the hand.
+	If I let this happen I get picked up instead of cards and you can't play a game..
+	So, don't let this happen!!"
+"
+	Transcript newLine; show: ( self name , ' bad attempt to be grabbed by ' , aHand name ).
+"
+	^nil
+! !
+
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 17:17'!
 addingCardOrCards: cardMorph toContainer: cardContainer
 	"Container is about to add a Card or Cards.  Make undo action."
@@ -5207,7 +5239,7 @@ gameIsWon
 	^(self piles inject: 0
 			    into: [ :count :pile | count + (pile submorphs size) ]) == 52! !
 
-!FreeCell methodsFor: 'accessing' stamp: 'KenD 6/26/2011 16:33'!
+!FreeCell methodsFor: 'accessing' stamp: 'KenD 1/18/2013 16:08'!
 helpText
 	^ '
 	FreeCell Rules:
@@ -5218,7 +5250,7 @@ helpText
  
 	You can move such "runs" up to the number of free cells plus 1.
  
-	Free cells are the spares and columns which contain no cards.
+	Free Cells are the spares and columns which contain no cards.
  
 	There are 4 spares. Each spare can hold a single card.
  
@@ -5349,14 +5381,14 @@ newGame
 	    "Note: (self deck shuffle) is done in (self dealCards)."
 		dealCards! !
 
-!FreeCell methodsFor: 'accessing' stamp: 'KenD 11/4/2004 08:52'!
+!FreeCell methodsFor: 'accessing' stamp: 'KenD 1/18/2013 16:09'!
 numberOfFreeCells
 	"Answer the number of empty Spares and Columns."
 
 	| numFree |
 	numFree := 0.
 	self spares   do: [ :spare | spare isEmpty ifTrue: [numFree := numFree + 1]].
-	self columns do: [ :spare | spare isEmpty ifTrue: [numFree := numFree + 1]].
+	self columns do: [ :colm |  colm  isEmpty ifTrue: [numFree := numFree + 1]].
 	^numFree! !
 
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:45'!
@@ -5604,11 +5636,12 @@ cardDeck
 
 	^cardDeck! !
 
-!Klondike methodsFor: 'event handling' stamp: 'KenD 1/10/2013 14:54'!
+!Klondike methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:23'!
 click: evt from: deckMorph
 	"Handle click events from CardDeckMorph."
-	
-
+"
+	Transcript newLine; show: (self name , ' got #click:from:'). 
+"
 	(deckMorph isKindOf: CardDeckMorph)
 	ifFalse: [ ^false ].
 
