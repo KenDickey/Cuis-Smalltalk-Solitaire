@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1561] on 21 January 2013 at 10:23:59 am'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1572] on 22 January 2013 at 7:42:02 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -548,6 +548,18 @@ addCard: aCard
 
 ! !
 
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:14'!
+allowsMorphDrop
+	"Answer whether we accept dropping morphs. By default answer false."
+
+	^ true! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:15'!
+allowsSubmorphDrag
+	"Answer whether our morphs can just be grabbed with the hand, instead of requiring the use of the halo. By default answer false."
+
+	^ true! !
+
 !CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
 defaultLayout
 	^LayoutSpec  fixedWidth: (CardMorph width + 4)
@@ -570,7 +582,7 @@ dropEnabled
 
 	^true! !
 
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/9/2013 19:59'!
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/22/2013 19:21'!
 initialize
 	"Set my typical properties; Assume displayed on a Green table."
 
@@ -578,8 +590,6 @@ initialize
 	self color: Color transparent;
 		borderColor: Color yellow;
 		borderWidth: 2; "pixels"
-		dragEnabled: true;
-		sticky: true;
 		morphWidth: CardMorph morphWidth + 4;
 		morphHeight: CardMorph morphHeight + 4;
 		layoutSpec: self defaultLayout; "subclasses may mutate or replace"
@@ -969,15 +979,22 @@ okToPickUp: aCard
 	
 	^false! !
 
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:00'!
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:18'!
 processMouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	click; wait until an ensuing #click: message gets dispatched"
 "
 	Transcript newLine; show: (self name , ' got #processMouseDown:localPosition:').  
 "
+" Never gets clicked. Click goes to World PasteUpMorph.  "
+"
 	evt hand waitForClicksOrDrag: self
-				event: evt clkSel: #click:localPosition: dblClkSel:nil.! !
+				event: evt clkSel: #click:localPosition: dblClkSel:nil.
+"
+	"Handle click ourselves"
+	evt wasHandled: true.
+	self click: evt localPosition: localEventPosition
+	! !
 
 !CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
 restoreFromArray: stateArray givenDeck: aDeck
@@ -1302,6 +1319,18 @@ acceptDroppingMorph: aMorph event: evt
 	ifTrue: [ ^(self owner) acceptDroppingMorph: aMorph event: evt ]
 	ifFalse: [ ^false ]! !
 
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:15'!
+allowsMorphDrop
+	"Answer whether we accept dropping morphs. By default answer false."
+
+	^ true! !
+
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:16'!
+allowsSubmorphDrag
+	"Answer whether our morphs can just be grabbed with the hand, instead of requiring the use of the halo. By default answer false."
+
+	^ true! !
+
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/18/2004 12:20'!
 backForm
 	"form for this card's back side"
@@ -1524,7 +1553,7 @@ name
 	"e.g. Jack of Hearts"
 	^((self face) asString), ' of ', ((self suit) asString)! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:01'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:34'!
 processMouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
@@ -1538,7 +1567,9 @@ processMouseDown: evt localPosition: localEventPosition
 		ifFalse: [^ self].
 	containerOKsPickup := (container okToPickUp: self).
 	containerOKsPickup | (container isKindOf: CardDeckMorph)
-	ifFalse: [^ self]
+	ifFalse: [
+		evt wasHandled:  true. "@@ Don't let World open a menu"
+		^ self]
 	ifTrue: [
 		containerOKsPickup
 		ifTrue: [ |hand|
@@ -1546,7 +1577,8 @@ processMouseDown: evt localPosition: localEventPosition
 			(localEventPosition < self morphExtent )
 			ifTrue: [hand grabMorph: self] "Close to cursor"
 			ifFalse: [self aboutToBeGrabbedBy: hand. "Far from cursor"
-					hand attachMorph: self]
+					hand attachMorph: self].
+			evt wasHandled:  true
 		]
 		ifFalse: [  "I may accept a click even if not able to be picked up"
 			evt hand waitForClicksOrDrag: self 
@@ -1629,7 +1661,7 @@ width
 
 	^self faceForm width! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 14:57'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/22/2013 19:20'!
 withCardNumber: cardNum
 	"Private"
 	
@@ -1637,7 +1669,6 @@ withCardNumber: cardNum
 	cardNumber := cardNum.
 	grabPreowner := nil.
 	self image: (self faceForm);
-		dragEnabled: true;
 		yourself! !
 
 !CardMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 14:57'!
@@ -4354,7 +4385,7 @@ addCard: aCard
 	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]
 ! !
 
-!CardTableMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:03'!
+!CardTableMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:28'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand.
 	If I let this happen I get picked up instead of cards and you can't play a game..
@@ -4362,7 +4393,8 @@ aboutToBeGrabbedBy: aHand
 "
 	Transcript newLine; show: ( self name , ' bad attempt to be grabbed by ' , aHand name ).
 "
-	^nil
+	"^nil"
+	^super aboutToBeGrabbedBy: aHand 
 ! !
 
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 17:17'!
@@ -5636,7 +5668,7 @@ cardDeck
 
 	^cardDeck! !
 
-!Klondike methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:23'!
+!Klondike methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:26'!
 click: evt from: deckMorph
 	"Handle click events from CardDeckMorph."
 "
@@ -5662,9 +5694,9 @@ click: evt from: deckMorph
 		self pushUndoObject: (CardUndoAction from: deckMorph 
 												to: discards
 												moving: nil "special case")
- 	]
+ 	].
 
-	! !
+	evt wasHandled: true! !
 
 !Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 13:46'!
 column: columnMorph wantsDropOf: aCardOrColumnMorph 
