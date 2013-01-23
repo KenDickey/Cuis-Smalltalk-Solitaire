@@ -1,5 +1,5 @@
-Cuis-Ia-En
-==========
+Cuis-Solitaire
+==============
 
 Solitaire &lt;-> Klondike & FreeCell Solitaire Games
 
@@ -18,3 +18,5 @@ Then execute
 
     Klondike newGame.
     FreeCell newGame.
+
+Or use the World Menu selection:  New Morph > Games-Solitaire
