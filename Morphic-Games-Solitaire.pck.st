@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1572] on 23 January 2013 at 11:05:55 am'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1576] on 23 January 2013 at 2:04:09 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -1671,7 +1671,7 @@ withCardNumber: cardNum
 	self image: (self faceForm);
 		yourself! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/15/2013 14:57'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 14:03'!
 withCardNumber: cardNum image: form
 	"Private"
 	
@@ -1679,7 +1679,6 @@ withCardNumber: cardNum image: form
 	cardNumber := cardNum.
 	grabPreowner := nil.
 	self image: form;
-		dragEnabled: true;
 		yourself! !
 
 !CardMorph class methodsFor: 'private' stamp: 'KenD 10/5/2006 09:39'!
