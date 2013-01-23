@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1572] on 22 January 2013 at 7:42:02 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1572] on 23 January 2013 at 11:05:55 am'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -4566,11 +4566,15 @@ isAutoMoveLegalFrom: aContainer to: aPile
 isCardTable
 	^true! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:15'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:36'!
 makeButtonArea
 	"Make a new Button Area as a submorph"
 
-	| buttonArea  |
+	| buttonArea  buttonColor |
+	
+	buttonColor := Theme current buttonColorFrom: 
+					(Theme current defaultWindowColor).
+
 
 	buttonArea := LayoutMorph newRow separation: 5.
 	buttonArea
@@ -4595,7 +4599,9 @@ makeButtonArea
 							proportionalWidth: 0.20;
 				addMorph: (self makeQuitButton) 
 							proportionalWidth: 0.20.
-				
+							
+	buttonArea submorphs do: [ :button | button color: buttonColor ].
+	
 	self undoButton disable.
 
 	self addMorph: buttonArea 
@@ -4881,20 +4887,21 @@ includeInNewMorphMenu
 initializedInstance
 	^self newColumn! !
 
-!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 7/2/2012 16:05'!
+!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:50'!
 randomWinnerText
 	"Return some random winner text message"
 
 	| textArray seed |
 	
-	textArray := #( 'You Won!!'
+	textArray := #( 
+'You Won!!'
  'You''re a Winner!!'
  'Cool Man!!'
  'Too Easy!!'
  'Wow!!'
  'Super Cool!!'
  'You''re the Best!!'
-'Another Winner!!'
+ 'Another Winner!!'
  'Congrads!!'
  'Way to go!!'
  'Free Game, Play Again!!'
@@ -4932,7 +4939,7 @@ randomWinnerText
  'Yo Ho!!'
  'Bingo!!'
  'Life Can Be Beautiful'
- 'Wonderful simply wonderful'
+ 'Wonderful, simply wonderful'
  'You did that too fast, do another'
  'Things are looking up!!'
  'You lucked out this time'
@@ -4941,14 +4948,28 @@ randomWinnerText
  'Next stop Las Vegas!!'
  'That was really, really good!!'
  'Exemplary!!'
- 'Take a Bow!!' 'Collect all 50 Winning Banners' 'Amazing, simply amazing'
+ 'Take a Bow!!' 
+ 'Collect all 50 Winning Banners' 
+ 'Amazing, simply amazing'
  'Victory!!'
- 'You''re the Tops!!' 'Another Feather in your Cap!!' 'You''re the Champ!!'
-	'Top Dog!!' 'You Take the Prize' 'You made Short Work of That One' 'A Lead-Pipe Cinch'
-	'Another Triumph' 'You are a Sensation!!' 'TouchDown!!' 'You Played That One Right!!'
-	'You would Break the Bank if you did this for money!!' 'Sweet Success!!' 
-	'You just scraped by on that one' 'You pulled it off!!' 'You muddled through another one'
-	'You are in the swing of things now!!' 'Fortune smiles on Winners!!'
+ 'You''re the Tops!!' 
+'Another Feather in your Cap!!' 
+'You''re the Champ!!'
+'Top Dog!!' 
+'You Take the Prize' 
+'You made Short Work of That One' 
+'A Lead-Pipe Cinch'
+'Another Triumph' 
+'You are a Sensation!!' 
+'TouchDown!!' 
+'You Played That One Right!!'
+'No flies on you!!' 
+'Sweet Success!!' 
+'You just scraped by on that one' 
+'You pulled it off!!' 
+'You muddled through another one'
+'You are in the swing of things now!!' 
+'Fortune smiles on Winners!!'
 	)
 .
 	
@@ -5107,12 +5128,12 @@ from: aCardContainer to: AnotherCardContainer moving: aCard
 	undo from: aCardContainer to: AnotherCardContainer moving: aCard.
 	^undo! !
 
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/9/2013 20:25'!
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:51'!
 disable
 	"setter for disabled"
 	
 	disabled := true.
-	self color: Color darkGray.
+	self color: (self origColor darker darker darker).
 	self redrawNeeded.
 	^self! !
 
@@ -5138,13 +5159,15 @@ handlesMouseDown: evt
 	ifFalse: [ ^super handlesMouseDown: evt ]
 ! !
 
-!EnableDisableButton methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:28'!
+!EnableDisableButton methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:40'!
 initialize
 	"Start out enabled"
 
 	super initialize.
 	disabled := false.
-	origColor := color.
+	self color: (Theme current buttonColorFrom: 
+					(Theme current defaultWindowColor)).
+	self origColor: self color.
 	^self! !
 
 !EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
@@ -5160,6 +5183,16 @@ labelStringMorph
 
 	self allMorphsDo: [:m | (m isKindOf: StringMorph) ifTrue: [^m]].
 	^ nil! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
+origColor
+	
+	^origColor! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
+origColor: aColor
+	
+	origColor := aColor! !
 
 !EnableDisableButton class methodsFor: 'as yet unclassified' stamp: 'KenD 6/23/2011 22:03'!
 includeInNewMorphMenu
