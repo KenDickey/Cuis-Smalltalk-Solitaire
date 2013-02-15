@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1576] on 23 January 2013 at 2:04:09 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1600] on 15 February 2013 at 2:43:50 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -1553,7 +1553,7 @@ name
 	"e.g. Jack of Hearts"
 	^((self face) asString), ' of ', ((self suit) asString)! !
 
-!CardMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:34'!
+!CardMorph methodsFor: 'event handling' stamp: 'KenD 2/15/2013 14:37'!
 processMouseDown: evt localPosition: localEventPosition
 	"Do nothing upon mouse-down except inform the hand to watch for a 
 	double-click; wait until an ensuing click:, doubleClick:, or drag: 
@@ -1571,6 +1571,10 @@ processMouseDown: evt localPosition: localEventPosition
 		evt wasHandled:  true. "@@ Don't let World open a menu"
 		^ self]
 	ifTrue: [
+			evt hand waitForClicksOrDrag: self 
+					 event: evt 
+					 dragSel: #click:localPosition:
+					 clkSel:  #click:localPosition: .
 		containerOKsPickup
 		ifTrue: [ |hand|
 			hand := self runningWorld activeHand.
@@ -1579,12 +1583,6 @@ processMouseDown: evt localPosition: localEventPosition
 			ifFalse: [self aboutToBeGrabbedBy: hand. "Far from cursor"
 					hand attachMorph: self].
 			evt wasHandled:  true
-		]
-		ifFalse: [  "I may accept a click even if not able to be picked up"
-			evt hand waitForClicksOrDrag: self 
-					 event: evt 
-					 clkSel: #click:localPosition:
-					 dblClkSel: nil
 		]
 	]
 ! !
@@ -1671,7 +1669,7 @@ withCardNumber: cardNum
 	self image: (self faceForm);
 		yourself! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 14:03'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 13:53'!
 withCardNumber: cardNum image: form
 	"Private"
 	
