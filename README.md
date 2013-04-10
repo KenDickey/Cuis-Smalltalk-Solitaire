@@ -3,6 +3,7 @@ Cuis-Solitaire
 
 Solitaire:  Klondike & FreeCell Solitaire Games
 
+Tested with Cuis 1661
 
 
 To load the package
