@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1600] on 15 February 2013 at 2:43:50 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1663] on 8 April 2013 at 10:41:24 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -4710,7 +4710,7 @@ popUndoObject
 	ifTrue: [ self undoButton disable ].
 	^undoObject! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 11/18/2004 17:11'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 4/8/2013 22:40'!
 possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum
 	"See if we can move our top Card into a Pile. 
 	Answer true if we were able to move a card."
@@ -4720,11 +4720,12 @@ possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum
 			(self isAutoMoveLegalFrom: aCardContainer to: pile)
 			ifTrue: [
 				(aCardContainer submorphs at: 1) faceNumber <= faceNum
-				ifTrue: [ (self inUndo)
+				ifTrue: [ "(self inUndo)
 							ifFalse: [self pushUndoObject: (CardUndoAction from: pile
 															to: aCardContainer
 															moving: (aCardContainer
-																	 submorphs at: 1))].
+																	 submorphs at: 1))]."
+						self moveStart: aCardContainer.
 						self animateMoveFrom: aCardContainer to: pile. 
 						^true ]
 			]
