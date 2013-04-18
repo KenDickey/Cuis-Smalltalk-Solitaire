@@ -1,4 +1,4 @@
-'From Cuis 4.1 of 12 December 2012 [latest update: #1663] on 8 April 2013 at 10:41:24 pm'!
+'From Cuis 4.1 of 12 December 2012 [latest update: #1686] on 17 April 2013 at 8:59:30.335081 pm'!
 'Description Solitaire Card Games'!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
@@ -1415,7 +1415,7 @@ faceNumber
 
 	^((self cardNumber // 4) + 1)! !
 
-!CardMorph methodsFor: 'display' stamp: 'KenD 1/17/2011 20:56'!
+!CardMorph methodsFor: 'display' stamp: 'KenD 4/17/2013 20:33'!
 flip
 	"Turn the card over"
 
@@ -1498,7 +1498,7 @@ isCardMorph
 	
 	^true! !
 
-!CardMorph methodsFor: 'testing' stamp: 'KenD 1/17/2011 21:13'!
+!CardMorph methodsFor: 'testing' stamp: 'KenD 4/17/2013 20:30'!
 isFaceDown
 	"NB: ImageMorph >>#image in Pharo is ImageMorph >>#form in Cuis"
 
@@ -1609,7 +1609,7 @@ rememberPreowner
 	ifTrue: [grabPreowner := self owner]
 	ifFalse: [grabPreowner  := nil] "no funny stuff.."! !
 
-!CardMorph methodsFor: 'private' stamp: 'KenD 1/29/2011 01:02'!
+!CardMorph methodsFor: 'private' stamp: 'KenD 4/17/2013 20:31'!
 saveImageToFile: aFileName
 	"NB: overrited file without question"
 
@@ -4409,7 +4409,7 @@ addingCardOrCards: cardMorph toContainer: cardContainer
 												to: (self moveStart) 
 												moving: cardMorph)]! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 1/13/2013 15:15'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 4/17/2013 20:32'!
 animateMoveFrom: aContainer to: aPile
 	"Animate move of the top Card in aPile into aContainer."
 
@@ -4885,7 +4885,7 @@ includeInNewMorphMenu
 initializedInstance
 	^self newColumn! !
 
-!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:50'!
+!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 4/17/2013 20:42'!
 randomWinnerText
 	"Return some random winner text message"
 
@@ -4972,7 +4972,7 @@ randomWinnerText
 .
 	
 	[seed := (Time millisecondClockValue bitAnd: 16r3FFFFFFF) bitXor: self hash.
-	seed := seed bitXor: (Time totalSeconds bitAnd: 16r3FFFFFFF).
+	seed := seed bitXor: (Time localMillisecondClock bitAnd: 16r3FFFFFFF).
 	seed = 0] whileTrue: ["Try again if ever get a seed = 0"].
 
 	^textArray at: ((Random new seed: seed) nextInt: (textArray size))! !
@@ -5175,6 +5175,10 @@ isDisabled
 !EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
 isEnabled
 	^self disabled not! !
+
+!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 4/17/2013 20:58'!
+isLocked
+     ^self isDisabled! !
 
 !EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 11/6/2004 19:07'!
 labelStringMorph
@@ -6249,7 +6253,7 @@ scale
 scale: newScale
 	 scale := newScale! !
 
-!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 7/15/2011 16:21'!
+!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 4/17/2013 20:32'!
 the: num of: suit scale: scale
 	"Scaled Card Morph"
 

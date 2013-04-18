@@ -3,7 +3,7 @@ Cuis-Solitaire
 
 Solitaire:  Klondike & FreeCell Solitaire Games
 
-Tested with Cuis 1661
+Tested with Cuis 1686
 
 
 To load the package
@@ -11,7 +11,7 @@ To load the package
     | slash |
     slash := FileDirectory slash.
      CodePackageFile installPackageStream:
-        (FileStream concreteStream readOnlyFileNamed: 
+        (FileStream concreteStream readOnlyFileNamed:
             '..', slash, 'Cuis-Solitaire', slash, 'Morphic-Games-Solitaire.pck.st'
         )
 
