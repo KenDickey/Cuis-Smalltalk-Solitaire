@@ -1,5 +1,7 @@
 'From Cuis 4.1 of 12 December 2012 [latest update: #1686] on 17 April 2013 at 8:59:30.335081 pm'!
 'Description Solitaire Card Games'!
+!provides: 'Morphic-Games-Solitaire' 1 16!
+!requires: 'Graphics-Files-Additional' 1 nil!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
 	instanceVariableNames: 'targetTable'
