@@ -2,6 +2,7 @@
 'Description Solitaire Card Games'!
 !provides: 'Morphic-Games-Solitaire' 1 16!
 !requires: 'Graphics-Files-Additional' 1 nil!
+!requires: 'Cuis-Base' 42 1788!
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
 BorderedRectMorph subclass: #CardContainerMorph
 	instanceVariableNames: 'targetTable'
