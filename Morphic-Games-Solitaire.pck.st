@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #1808] on 26 August 2013 at 8:14:58.003087 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #1808] on 28 August 2013 at 1:04:38.626962 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 17!
+!provides: 'Morphic-Games-Solitaire' 1 18!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 1808 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -5394,7 +5394,7 @@ maxFaceNumberToMoveToPiles
 	"N is 2"
 	^min + 2! !
 
-!FreeCell methodsFor: 'actions' stamp: 'KenD 1/10/2013 20:01'!
+!FreeCell methodsFor: 'actions' stamp: 'KenD 8/28/2013 13:04'!
 newGame
 	"Empty out my Card Containers, shuffle and re-deal."
 	
@@ -5402,7 +5402,8 @@ newGame
 		makeUndoStackEmpty;
 		removeCards;
 	    "Note: (self deck shuffle) is done in (self dealCards)."
-		dealCards! !
+		dealCards;
+		redrawNeeded ! !
 
 !FreeCell methodsFor: 'accessing' stamp: 'KenD 1/18/2013 16:09'!
 numberOfFreeCells
@@ -5532,7 +5533,7 @@ restoreGameFromDataStream: aDataStream
 		ifFalse: [ Error signal: 'FIXME: Undo save/restore NYI' ].
 	]! !
 
-!FreeCell methodsFor: 'actions' stamp: 'KenD 1/10/2013 20:00'!
+!FreeCell methodsFor: 'actions' stamp: 'KenD 8/28/2013 13:04'!
 sameGame
 	"Empty out my Card Containers and deal the original deal."
 	
@@ -5541,7 +5542,8 @@ sameGame
 		makeUndoStackEmpty;
 		removeCards;
 	    "Note: (self deck shuffle) is done in (self dealCards)."
-		reDealCards! !
+		reDealCards;
+		redrawNeeded ! !
 
 !FreeCell methodsFor: 'fileIn/out' stamp: 'KenDickey 11/19/2010 14:42'!
 saveGame
@@ -5931,7 +5933,7 @@ maxFaceNumberToMoveToPiles
 		    ].
 	^min + 1! !
 
-!Klondike methodsFor: 'actions' stamp: 'KenD 1/10/2013 20:01'!
+!Klondike methodsFor: 'actions' stamp: 'KenD 8/28/2013 13:03'!
 newGame
 	"Empty out my Card Containers, shuffle and re-deal."
 	
@@ -5939,7 +5941,8 @@ newGame
 		makeUndoStackEmpty;
 		removeCards;
 	    "Note: (self deck shuffle) is done in (self dealCards)."
-		dealCards! !
+		dealCards;
+		redrawNeeded ! !
 
 !Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:33'!
 pickLegalFor: aCard 
@@ -6091,7 +6094,7 @@ runStartsFrom: aCard in: aColumn
 	"cardIndex = 1"
 	^true! !
 
-!Klondike methodsFor: 'actions' stamp: 'KenD 1/10/2013 20:00'!
+!Klondike methodsFor: 'actions' stamp: 'KenD 8/28/2013 13:02'!
 sameGame
 	"Empty out my Card Containers and deal the original deal."
 	
@@ -6100,7 +6103,8 @@ sameGame
 		makeUndoStackEmpty;
 		removeCards;
 	    "Note: (self deck shuffle) is done in (self dealCards)."
-		reDealCards! !
+		reDealCards;
+		redrawNeeded ! !
 
 !Klondike methodsFor: 'fileIn/out' stamp: 'KenDickey 11/19/2010 14:42'!
 saveGame
