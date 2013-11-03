@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #1808] on 28 August 2013 at 1:04:38.626962 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #1855] on 29 October 2013 at 10:03:08.591087 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 18!
+!provides: 'Morphic-Games-Solitaire' 1 20!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 1808 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -4577,7 +4577,7 @@ addingCardOrCards: cardMorph toContainer: cardContainer
 												to: (self moveStart) 
 												moving: cardMorph)]! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 4/17/2013 20:32'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:45'!
 animateMoveFrom: aContainer to: aPile
 	"Animate move of the top Card in aPile into aContainer."
 
@@ -4594,13 +4594,13 @@ animateMoveFrom: aContainer to: aPile
 	"Animate the image move"
 	(topCard form) slideFrom: worldOrigin
 		to: aPile morphBoundsInWorld origin
-		nSteps: 38
-		delay: 10.
+		nSteps: self numberOfMoveSteps 
+		delay: self moveDelay.
 		
 	"Give the card to otherContainer."
 	aPile acceptDroppingMorph: topCard event: nil! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 1/15/2013 20:21'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:45'!
 animateMoveFrom: aContainer to: otherContainer moving: someCard
 	"Animate move of Card or Cards."
 
@@ -4624,12 +4624,12 @@ animateMoveFrom: aContainer to: otherContainer moving: someCard
 		topDestCard isNil
 		ifTrue: [cardForm slideFrom: cardBounds origin
 				to: otherContainer morphBoundsInWorld origin
-				nSteps: 38
-				delay: 10]
+				nSteps: self numberOfMoveSteps
+				delay: self moveDelay ]
 		ifFalse: [cardForm slideFrom: cardBounds origin
 				to: topDestCard morphBoundsInWorld origin
-				nSteps: 38
-				delay: 10].
+				nSteps: self numberOfMoveSteps
+				delay: self moveDelay ].
 	].
 	"Give the someCard to otherContainer."
 	otherContainer acceptDroppingMorph: someCard event: nil! !
@@ -4863,6 +4863,11 @@ makeUndoStackEmpty
 	self undoButton disable.
 	undoStack := Stack new initialize.! !
 
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:47'!
+moveDelay
+
+	^ 10! !
+
 !CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:58'!
 moveStart
 	
@@ -4879,6 +4884,11 @@ moveStart: cardContainer
 mutex
 
 	^mutex! !
+
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:47'!
+numberOfMoveSteps
+
+	^ 60! !
 
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 19:08'!
 popUndoObject
