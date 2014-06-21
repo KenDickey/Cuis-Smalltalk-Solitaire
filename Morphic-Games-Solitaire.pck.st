@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #1855] on 29 October 2013 at 10:03:08.591087 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2021] on 20 June 2014 at 8:07:34.362723 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 20!
+!provides: 'Morphic-Games-Solitaire' 1 21!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 1808 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -1689,14 +1689,6 @@ minimumExtent
 
 	^self faceForm extent
 ! !
-
-!CardMorph methodsFor: 'geometry' stamp: 'KenD 1/14/2013 20:29'!
-morphExtent: aPoint
-	"assume it is always in our coordinates!!"
-	
-	"an argument for extent in forms"
-	self flag: #jmvVer2.
-	self basicExtent: aPoint! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:44'!
 name
