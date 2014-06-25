@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2021] on 20 June 2014 at 8:07:34.362723 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2021] on 24 June 2014 at 9:45:30.167738 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 21!
+!provides: 'Morphic-Games-Solitaire' 1 22!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 1808 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -4592,7 +4592,7 @@ animateMoveFrom: aContainer to: aPile
 	"Give the card to otherContainer."
 	aPile acceptDroppingMorph: topCard event: nil! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:45'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 6/24/2014 21:41'!
 animateMoveFrom: aContainer to: otherContainer moving: someCard
 	"Animate move of Card or Cards."
 
@@ -4601,10 +4601,10 @@ animateMoveFrom: aContainer to: otherContainer moving: someCard
 	someCard isNil
 	ifFalse: [
 		cardBounds := someCard morphBoundsInWorld. "bounds before removed"
-		
+
 		"Remove Cards from aContainer"
 		someCard collectCardsAboveMe.
-		cardForm := Form fromDisplay: someCard morphBoundsInWorld.
+		cardForm := Form fromDisplay: someCard morphFullBoundsInWorld.
 		aContainer removeMorph: someCard.
 		someCard submorphs do: [ :card | aContainer removeMorph: card ].
 
