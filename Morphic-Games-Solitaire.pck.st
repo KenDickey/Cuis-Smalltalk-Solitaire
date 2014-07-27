@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2021] on 24 June 2014 at 9:45:30.167738 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2055] on 25 July 2014 at 7:27:55.382778 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 22!
+!provides: 'Morphic-Games-Solitaire' 1 25!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
-!requires: 'Cuis-Base' 42 1808 nil!
+!requires: 'Cuis-Base' 42 2055 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -1243,7 +1243,7 @@ saveStateToArray
 		].
 	^answerArray! !
 
-!CardDiscardMorph methodsFor: 'drawing' stamp: 'KenD 1/10/2013 18:53'!
+!CardDiscardMorph methodsFor: 'drawing' stamp: 'KenD 7/25/2014 19:09'!
 showTopCards
 	"Show numCardsToShow cards (if I contain that many)"
 
@@ -1258,7 +1258,7 @@ showTopCards
 		cardStack push: cardToMove.
 		self removeMorph: cardToMove.
 	].
-	self layoutSubmorphsHorizontallyIn: (self layoutBounds).
+	self layoutSubmorphsHorizontallyIn: (0@0 extent: self morphExtent).
 ! !
 
 !CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/21/2004 14:00'!
@@ -5066,7 +5066,7 @@ includeInNewMorphMenu
 initializedInstance
 	^self newColumn! !
 
-!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 4/17/2013 20:42'!
+!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 7/4/2014 15:55'!
 randomWinnerText
 	"Return some random winner text message"
 
@@ -5078,6 +5078,7 @@ randomWinnerText
  'Cool Man!!'
  'Too Easy!!'
  'Wow!!'
+ 'Another Day, Another Winner!!'
  'Super Cool!!'
  'You''re the Best!!'
  'Another Winner!!'
@@ -5091,6 +5092,7 @@ randomWinnerText
  'You''re a Tall Poppy'
  'Frabjous Day!!'
  'Yay!!'
+ 'Hubba, hubba!!'
  'Wonderful'
  'Simply Brilliant!!'
  'Wizard!!'
@@ -5122,6 +5124,7 @@ randomWinnerText
  'You did that too fast, do another'
  'Things are looking up!!'
  'You lucked out this time'
+ 'You Take the Prize'
  'This space reserved for winners only'
  'Send $25 for your name here'
  'Next stop Las Vegas!!'
