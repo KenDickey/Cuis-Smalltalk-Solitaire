@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2055] on 25 July 2014 at 7:27:55.382778 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2135] on 17 December 2014 at 8:44:46.881449 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 25!
+!provides: 'Morphic-Games-Solitaire' 1 26!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
-!requires: 'Cuis-Base' 42 2055 nil!
+!requires: 'Cuis-Base' 42 2135 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -6185,12 +6185,12 @@ asArray
 errorEmptyStack
 	self error: 'this stack is empty'! !
 
-!Stack methodsFor: 'private' stamp: 'KenD 11/19/2004 12:10'!
+!Stack methodsFor: 'private' stamp: 'KenD 12/16/2014 19:16'!
 grow
 	"PRIVATE -- Expand self"
 	
 	| originalValues index |
-	originalValues := self valuesArray: (Array ofSize: (2 * (valuesArray size))).
+	originalValues := self valuesArray: (Array new: (2 * (valuesArray size))).
 	index := 1.
 	originalValues do: [ :elt | valuesArray at: index put: elt. index := index + 1.].
 	^self
@@ -6238,10 +6238,10 @@ ifNotEmptyDo: notEmptyBlock ifEmpty: emptyBlock
 
 	^ self isEmpty ifFalse: [notEmptyBlock value: self] ifTrue: emptyBlock! !
 
-!Stack methodsFor: 'private' stamp: 'KenD 5/14/2002 11:22'!
+!Stack methodsFor: 'private' stamp: 'KenD 12/16/2014 19:15'!
 initialize
 	self top: 0.
-	self valuesArray: (Array ofSize: 6).
+	self valuesArray: (Array new:6).
 	^self! !
 
 !Stack methodsFor: 'testing' stamp: 'KenD 5/14/2002 10:52'!
