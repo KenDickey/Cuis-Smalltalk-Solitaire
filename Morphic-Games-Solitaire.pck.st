@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2135] on 17 December 2014 at 8:44:46.881449 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 21 March 2015 at 8:24:02.940607 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 26!
+!provides: 'Morphic-Games-Solitaire' 1 50!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
-!requires: 'Cuis-Base' 42 2135 nil!
+!requires: 'Cuis-Base' 42 2203 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -11,16 +11,6 @@ Object subclass: #CardDeck
 	category: 'Morphic-Games-Solitaire'!
 !classDefinition: 'CardDeck class' category: #'Morphic-Games-Solitaire'!
 CardDeck class
-	instanceVariableNames: ''!
-
-!classDefinition: #CardUndoAction category: #'Morphic-Games-Solitaire'!
-Object subclass: #CardUndoAction
-	instanceVariableNames: 'fromContainer toContainer cardMorph'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Morphic-Games-Solitaire'!
-!classDefinition: 'CardUndoAction class' category: #'Morphic-Games-Solitaire'!
-CardUndoAction class
 	instanceVariableNames: ''!
 
 !classDefinition: #CardContainerMorph category: #'Morphic-Games-Solitaire'!
@@ -115,7 +105,7 @@ ScaledCardMorph class
 
 !classDefinition: #CardTableMorph category: #'Morphic-Games-Solitaire'!
 LayoutMorph subclass: #CardTableMorph
-	instanceVariableNames: 'undoStack inCardMove moveStart inUndo undoButton saveGameButton winnerText labelLayout labelMorph mutex'
+	instanceVariableNames: 'undoStack inCardMove goAgain inUndo undoButton saveGameButton winnerText labelLayout labelMorph mutex'
 	classVariableNames: 'WinnerText'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -178,21 +168,6 @@ Structure:
 Resetting the seed and shuffling will give the same deal.
 
 A Card belongs to only 1 deck.  You can use multiple decks.!
-
-!CardUndoAction commentStamp: 'KenD 11/4/2004 09:40' prior: 0!
-This is a temporary class until Squeak gets BlockClosures.
-
-CardUndoAction from: aCardContainer to: AnotherCardContainer moving: aCard.
-anUndoAction value: anCardTable. -> Animates the undo action
-
-Structure:
- fromContainer	CardContainer
- toContainer		CardContainer
- cardMorph		CardMorph
-		
-The Card cardMorph and any Cards above it are moved from fromContainer to toContainer.
-
-!
 
 !CardContainerMorph commentStamp: 'KenD 10/22/2004 11:54' prior: 0!
 I am the parent of CardContainer classes.
@@ -344,7 +319,7 @@ The table is layed out into areas for spares, piles, columns, and buttons.
 	
 !
 
-!Klondike commentStamp: 'KenD 1/25/2011 17:44' prior: 0!
+!Klondike commentStamp: '<historical>' prior: 0!
 I contain and implement a Klondike Solitare Game.
 
 Klondike newGame openInWorld.
@@ -359,15 +334,15 @@ Structure:
 The table is layed out into areas fot spares, piles, columns, and buttons.
 
 	-------------------------------------------
-	|   deck + discards   |    piles          |  -> piles area
+	|   deck + discards   |    piles 	         |  -> piles area
 	-------------------------------------------
 	|                                         			|
-	|                                		      	|
+	|                                			      	|
 	|            columns area            		|
 	|                                        			|
 	|                                       			|
 	-------------------------------------------
-	|            bottons area          	      |
+	|            bottons area     	     	   	|
 	-------------------------------------------
 	
 	The Discard shows the top 3 cards.
@@ -552,41 +527,17 @@ startOver
 
 	index := 0! !
 
-!CardUndoAction methodsFor: 'initialization' stamp: 'KenD 11/4/2004 09:44'!
-from: aCardContainer to: AnotherCardContainer moving: aCard
-
-	fromContainer := aCardContainer. 
-	toContainer := AnotherCardContainer.
-	cardMorph := aCard.
-	^self! !
-
-!CardUndoAction methodsFor: 'actions' stamp: 'KenD 11/22/2004 08:34'!
-value: anCardTable
-	"Do the deed."
-
-	anCardTable animateMoveFrom: fromContainer 
-					to: toContainer 
-					moving: cardMorph! !
-
-!CardUndoAction class methodsFor: 'instance creation' stamp: 'KenD 11/4/2004 10:12'!
-from: aCardContainer to: AnotherCardContainer moving: aCard
-
-	| undo |
-	undo := super new initialize.
-	undo from: aCardContainer to: AnotherCardContainer moving: aCard.
-	^undo! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/15/2013 16:28'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:19'!
 acceptDroppingMorph: aMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
 
 	| table |
 	table := targetTable.
-	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ].
 	self addCard: aMorph.
-	aMorph submorphs reverseDo: [:aCard | self addCard: aCard]
-		! !
+	aMorph submorphs reverseDo: [:aCard | self addCard: aCard].
+	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ]
+! !
 
 !CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
 addCard: aCard
@@ -610,6 +561,12 @@ allowsSubmorphDrag
 	"Answer whether our morphs can just be grabbed with the hand, instead of requiring the use of the halo. By default answer false."
 
 	^ true! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 3/1/2015 17:08'!
+containerOffset
+	"Offset from my morphPosition to that of contained card"
+
+	^ContainerOffset! !
 
 !CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
 defaultLayout
@@ -752,7 +709,7 @@ initialize
 	ContainerOffset _ 2 @ 2.
 ! !
 
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:51'!
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:49'!
 addCard: aCard
 
 	| newPos |
@@ -763,7 +720,7 @@ addCard: aCard
 	aCard morphPosition: newPos.
 	self! !
 
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 13:43'!
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:56'!
 addCards: aCardCollectionOrContainer
 	"Add a collection of CardMorphs to the top of my Column"
 
@@ -774,6 +731,7 @@ addCards: aCardCollectionOrContainer
 	
 	"I assume checking for legality has alreade been done"
 	aCollection do: [:aCard| self addCard: aCard].
+	self showTopCard.
 	^aCardCollectionOrContainer
 ! !
 
@@ -1089,7 +1047,7 @@ wantsDroppedMorph: aMorph event: evt
 	
 	^false! !
 
-!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/24/2011 03:08'!
+!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:20'!
 acceptDroppingMorph: aCardMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
@@ -1100,8 +1058,8 @@ acceptDroppingMorph: aCardMorph event: evt
 		ifFalse: [ 
 			table inUndo
 			ifFalse: [ 
-				table addingCardOrCards: aCardMorph toContainer: self.
-				self addCard: aCardMorph
+				self addCard: aCardMorph.
+				table addingCardOrCards: aCardMorph toContainer: self
 			]
 			ifTrue: [ "take all cards from deck into self if Card is nil"
 				aCardMorph isNil
@@ -1565,7 +1523,7 @@ faceNumber
 
 	^((self cardNumber // 4) + 1)! !
 
-!CardMorph methodsFor: 'display' stamp: 'KenD 4/17/2013 20:33'!
+!CardMorph methodsFor: 'display' stamp: 'KenD 3/14/2015 21:00'!
 flip
 	"Turn the card over"
 
@@ -1663,7 +1621,7 @@ isFaceUp
 isRed
 	^(self suitColor) == #Red! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/14/2013 21:24'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/13/2015 19:47'!
 justDroppedInto: aMorph event: anEvent
 	"Someone just dropped me.."
 	
@@ -1671,15 +1629,15 @@ justDroppedInto: aMorph event: anEvent
 	self morphExtent: self minimumExtent.
 	"Tell my container"
 	(self owner isKindOf: CardContainerMorph)
-	ifTrue: [ ^(self owner) dropComplete ]
-	ifFalse: [^ false]! !
+	ifTrue: [ ^ (self owner) dropComplete ]
+	ifFalse: [^ false ]! !
 
 !CardMorph methodsFor: 'display' stamp: 'KenD 11/19/2004 11:41'!
 makeFaceDown
 
 	self isFaceDown ifFalse: [ self flip ]! !
 
-!CardMorph methodsFor: 'display' stamp: 'KenD 11/19/2004 11:41'!
+!CardMorph methodsFor: 'display' stamp: 'KenD 3/14/2015 20:59'!
 makeFaceUp
 
 	self isFaceUp ifFalse: [ self flip ]! !
@@ -4554,77 +4512,90 @@ aboutToBeGrabbedBy: aHand
 	^super aboutToBeGrabbedBy: aHand 
 ! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 17:17'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/20/2015 18:44'!
 addingCardOrCards: cardMorph toContainer: cardContainer
-	"Container is about to add a Card or Cards.  Make undo action."
-	
-	"If we had BlockClosures...
+	"Container is about to add a Card or Cards.  Remember undo action."
+
 	| startContainer |
-	startContainer := self moveStart.
-	[ :table | table animateMoveFrom: cardContainer to: startContainer moving: someCard ]
-	until then..."
+	self inUndo 
+	  ifFalse: [
+		startContainer := cardMorph valueOfProperty: #moveStart.
+		cardMorph removeProperty:  #moveStart.
+		self pushUndoObject: 
+				[ :table :nextAction | 
+					 table animateMoveFrom: cardContainer 
+							to: startContainer 
+							moving: cardMorph
+							next: nextAction ]
+	]
+ ! !
 
-	self inUndo
-	ifFalse: [self pushUndoObject: (CardUndoAction from: cardContainer 
-												to: (self moveStart) 
-												moving: cardMorph)]! !
-
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:45'!
-animateMoveFrom: aContainer to: aPile
-	"Animate move of the top Card in aPile into aContainer."
-
-	| topCard worldOrigin |
-	topCard := aContainer topCard.
-	worldOrigin := topCard morphBoundsInWorld origin.
-	
-	"Remove the card from its Container"
-	aContainer removeMorph: topCard.
-	
-	"Redraw to hide the image"
-	aContainer world displayWorld.
-	
-	"Animate the image move"
-	(topCard form) slideFrom: worldOrigin
-		to: aPile morphBoundsInWorld origin
-		nSteps: self numberOfMoveSteps 
-		delay: self moveDelay.
-		
-	"Give the card to otherContainer."
-	aPile acceptDroppingMorph: topCard event: nil! !
-
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 6/24/2014 21:41'!
-animateMoveFrom: aContainer to: otherContainer moving: someCard
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/21/2015 08:11'!
+animateMoveFrom: aContainer to: otherContainer moving: someCard next: nextAction
 	"Animate move of Card or Cards."
 
-	| topDestCard cardBounds cardForm |
+	| topDestCard worldPos destPos |
 	"Skip if funky special case in undo action"
-	someCard isNil
+	someCard isNil 
+	ifTrue: [ nextAction value ]
 	ifFalse: [
-		cardBounds := someCard morphBoundsInWorld. "bounds before removed"
+		worldPos := someCard morphPositionInWorld. 
+		someCard setProperty: #moveStart toValue: aContainer .
 
-		"Remove Cards from aContainer"
+		"Gather and remove card run from aContainer"
 		someCard collectCardsAboveMe.
-		cardForm := Form fromDisplay: someCard morphFullBoundsInWorld.
-		aContainer removeMorph: someCard.
-		someCard submorphs do: [ :card | aContainer removeMorph: card ].
 
-		"Redraw to hide the image"
-		aContainer world displayWorld.
-		
+		"Transfer card(s) to World"
+		aContainer removeMorph: someCard.
+		self world addMorph: someCard. 
+		someCard morphPosition: worldPos.
+
 		topDestCard := otherContainer topCard.
-		"Animate the image move"
 		topDestCard isNil
-		ifTrue: [cardForm slideFrom: cardBounds origin
-				to: otherContainer morphBoundsInWorld origin
-				nSteps: self numberOfMoveSteps
-				delay: self moveDelay ]
-		ifFalse: [cardForm slideFrom: cardBounds origin
-				to: topDestCard morphBoundsInWorld origin
-				nSteps: self numberOfMoveSteps
-				delay: self moveDelay ].
-	].
-	"Give the someCard to otherContainer."
-	otherContainer acceptDroppingMorph: someCard event: nil! !
+			ifTrue: [ destPos := otherContainer morphPositionInWorld
+								  + otherContainer containerOffset ]
+			ifFalse: [ destPos := topDestCard morphPositionInWorld ].
+		
+		"Animate the image move -- in World coordinates"
+		self slide: someCard
+			  to: destPos
+			  nSteps: self numberOfMoveSteps
+			  delay: self moveDelay
+			  next: [ "Give the someCard to otherContainer."
+				someCard world removeMorph: someCard.
+				otherContainer acceptDroppingMorph: someCard event: nil.
+				nextAction value
+		  ]
+	]
+! !
+
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/21/2015 08:12'!
+animateMoveFrom: aContainer to: aPile next: nextAction
+	"Animate move of the top Card in aPile into aContainer."
+
+	| topCard worldPos |
+	topCard := aContainer topCard.
+	topCard setProperty: #moveStart toValue: aContainer .
+	worldPos := topCard morphPositionInWorld.
+	
+	"Transfer card to World"
+	aContainer removeMorph: topCard.
+	self world addMorph: topCard.
+	topCard morphPosition: worldPos.
+	
+	"Animate the image move -- in World coordinates"
+	self slide: topCard 
+		  to: aPile morphPositionInWorld + aPile containerOffset
+		  nSteps: self numberOfMoveSteps 
+		  delay: self moveDelay
+		  next: [
+				"Give the card to otherContainer."
+				topCard world removeMorph: topCard.
+				aPile acceptDroppingMorph: topCard event: nil.
+				nextAction value
+		  ].
+
+! !
 
 !CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:16'!
 buildButton: aButton
@@ -4649,9 +4620,9 @@ drawOn: aCanvas
 		borderWidth: 4
 		borderStyleSymbol: #raised.! !
 
-!CardTableMorph methodsFor: 'actions' stamp: 'KenD 10/29/2004 10:27'!
+!CardTableMorph methodsFor: 'actions' stamp: 'KenD 3/8/2015 19:13'!
 dropComplete
-	"Subclasses should overried if they want tt do something when
+	"Subclasses should overried if they want to do something when
 	Cards have been dropped."
 
 	^false! !
@@ -4668,6 +4639,18 @@ ensureFileName: fileNameString hasSuffix: suffixString
 	(fileNameString endsWith: cleanSuffix)
 	ifTrue: [ ^fileNameString ]
 	ifFalse: [ ^fileNameString , cleanSuffix ]! !
+
+!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 3/9/2015 10:39'!
+goAgain
+	"When inCardMove, goAgain indicates another checking loop is required"
+	
+	^ goAgain! !
+
+!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 3/9/2015 10:39'!
+goAgain: aBool
+	"When inCardMove, goAgain indicates another checking loop is required"
+	
+	goAgain := aBool! !
 
 !CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/21/2011 16:14'!
 help
@@ -4696,7 +4679,7 @@ inUndo: aBoolean
 
 	^inUndo := aBoolean! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/9/2013 19:44'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 3/9/2015 16:40'!
 initialize
 	"Set up typical properties for subclasses."
 	super initialize.
@@ -4705,6 +4688,7 @@ initialize
 	self beColumn; 
 		 separation: 10;
 		 inCardMove: false;
+		 goAgain: false;
 		 inUndo: false;
 		 color: (Color r: 0.304 g: 0.833 b: 0.075);  "green felt"
 		 morphPositionInWorld: (30 @ 26); 
@@ -4713,7 +4697,7 @@ initialize
 		 yourself
 	"subclasses setup the layout"! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 11/18/2004 17:10'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/15/2015 15:52'!
 isAutoMoveLegalFrom: aContainer to: aPile
 	"Answer true when it is legal to move a Card from the top
 	of the Card Container to a Pile"
@@ -4725,9 +4709,9 @@ isAutoMoveLegalFrom: aContainer to: aPile
 	ifTrue: [ ^topCard face = #Ace ]
 	ifFalse: [ | pileCard |
 			pileCard := aPile topCard.
-			^ (pileCard hasSameSuitAs: topCard)
+		^ (pileCard hasSameSuitAs: topCard)
 			& (pileCard hasFaceOneLessThan: topCard) 
-			]! !
+	]! !
 
 !CardTableMorph methodsFor: 'testing' stamp: 'KenD 10/21/2004 18:14'!
 isCardTable
@@ -4855,32 +4839,20 @@ makeUndoStackEmpty
 	self undoButton disable.
 	undoStack := Stack new initialize.! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:47'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/15/2015 16:07'!
 moveDelay
 
-	^ 10! !
-
-!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:58'!
-moveStart
-	
-	^moveStart! !
-
-!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/22/2004 08:20'!
-moveStart: cardContainer
-	"When a Card or Card Run is dropped, we need to create an Undo object.
-	To do that we need to know where we started."
-	
-	^moveStart := cardContainer! !
+	^ 5! !
 
 !CardTableMorph methodsFor: 'accessing' stamp: 'KenD 10/12/2011 20:40'!
 mutex
 
 	^mutex! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 10/29/2013 21:47'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/15/2015 16:08'!
 numberOfMoveSteps
 
-	^ 60! !
+	^ 40! !
 
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 19:08'!
 popUndoObject
@@ -4891,27 +4863,32 @@ popUndoObject
 	ifTrue: [ self undoButton disable ].
 	^undoObject! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 4/8/2013 22:40'!
-possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/20/2015 19:06'!
+possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum next: nextAction
 	"See if we can move our top Card into a Pile. 
-	Answer true if we were able to move a card."
+	Set  'table goAgain: true' if we were able to move a card."
 
-	self piles
-		do: [ :pile |
-			(self isAutoMoveLegalFrom: aCardContainer to: pile)
-			ifTrue: [
-				(aCardContainer submorphs at: 1) faceNumber <= faceNum
-				ifTrue: [ "(self inUndo)
-							ifFalse: [self pushUndoObject: (CardUndoAction from: pile
-															to: aCardContainer
-															moving: (aCardContainer
-																	 submorphs at: 1))]."
-						self moveStart: aCardContainer.
-						self animateMoveFrom: aCardContainer to: pile. 
-						^true ]
+	| table pilesLoop |
+	table := self.  "for closure access"
+	pilesLoop :=
+	  CardTableMorph 
+		cpsOverColl: table piles
+		do: [ :pile :next |
+			(table isAutoMoveLegalFrom: aCardContainer to: pile)
+			ifFalse: [ next value ]
+			ifTrue: [ | aCard |
+				aCard := aCardContainer topCard.
+				(aCard faceNumber <= faceNum)
+				ifFalse: [ next value ]
+				ifTrue: [ 
+						table goAgain: true.
+						table animateMoveFrom: aCardContainer to: pile next: next.
+					]
+				]
 			]
-		].
-	^false! !
+			next: nextAction.
+			
+		pilesLoop value! !
 
 !CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 19:03'!
 pushUndoObject: anUndoObject
@@ -5032,18 +5009,47 @@ showWinnerText
 			      addMorph: winnerText.
 	winnerText lock.! !
 
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/10/2015 16:42'!
+slide: aMorph to: endPoint nSteps: numSteps delay: milliSecondsDelay next: nextAction
+	"Slide from current to new position -- in owner's coordinates"
+	"Nota Bene: Asynchronous.  When complete,  nextAction value"
+
+	| startPoint delta stepCount |
+	startPoint _ aMorph morphPosition.
+	delta _ (endPoint - startPoint) / numSteps.
+	stepCount := 0.
+	aMorph when: #morphicStep 
+			  evaluate: [ :ignoredArgument |
+			stepCount := stepCount + 1.
+			(stepCount < numSteps)
+			ifTrue: [ 
+				aMorph morphPosition: (startPoint + (stepCount  * delta)) rounded; 
+				redrawNeeded 
+			]
+			ifFalse: [ "done"
+				aMorph stopStepping.
+				aMorph morphPosition: endPoint.
+				aMorph removeActionsForEvent: #morphicStep.
+				nextAction value
+			]
+	].
+	aMorph startSteppingStepTime: milliSecondsDelay! !
+
 !CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:59'!
 undoButton
 	
 	^undoButton! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 17:17'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/17/2015 20:00'!
 undoMove
 
-	self removeWinnerText.
-	self inUndo: true.
-	(self popUndoObject) value: self.
-	self inUndo: false.
+	| table |
+	table := self.
+	table removeWinnerText.
+	table inUndo: true.
+	"table undoButton disable."
+	(self popUndoObject) value: table value: [table inUndo: false. "table undoButton enable"]
+	
 
 ! !
 
@@ -5057,6 +5063,89 @@ undoStack
 undoStackIsEmpty
 	
 	^undoStack isEmpty! !
+
+!CardTableMorph class methodsFor: 'closurePassingStyle' stamp: 'KenD 3/11/2015 16:32'!
+cpsOverColl: orderedColletion do: aBlock next: nextAction
+	"Answers a closure which involes aBlock over one element of orderedCollection.
+	nextAction is a thunk (closure of zero arguments).
+	aBlock does not return but tales a nextAction argument and calls that"
+	
+	"See cpsOverCollExample"
+	| index numElts actionProc |
+	index := 0.
+	numElts := orderedColletion size.
+	actionProc := [ 
+		index := index + 1.
+	  	(index > numElts)
+	 	 ifTrue: [ nextAction value ] "done"
+	  	 ifFalse: [ aBlock value: (orderedColletion at: index) value: actionProc ].
+	].
+	^ actionProc
+! !
+
+!CardTableMorph class methodsFor: 'closurePassingStyle' stamp: 'KenD 3/11/2015 16:16'!
+cpsOverCollExample
+	"This method should answer true"
+"
+	CardTableMorph cpsOverCollExample. 
+"
+	| sum |
+	sum := 0.
+	"Iterate over values"
+	^(CardTableMorph 
+		cpsOverColl: { 1. 2. 3. 4. } 
+		do: [ :elt :next | 
+				sum := sum + elt.
+				next value
+		] 
+											  
+	next: [ sum ]) value = 10.! !
+
+!CardTableMorph class methodsFor: 'closurePassingStyle' stamp: 'KenD 3/11/2015 16:16'!
+cpsOverCollExample2
+	"This method should answer true"
+"
+	CardTableMorph cpsOverCollExample2. 
+"
+	| sum |
+	sum := 0.
+	"Nested loop"
+	^(CardTableMorph 
+		cpsOverColl: { 1. 2. 3. 4. } 
+		do: [ :elt1 :next1 | 
+				(CardTableMorph 
+					cpsOverColl: { 3. 2. 1. }
+					do: [ :elt2 :next2 | 
+						sum := sum + (elt1 * elt2).
+						next2 value
+					]
+					next: next1) value
+		] 
+		 next: [ sum ]) value = 60! !
+
+!CardTableMorph class methodsFor: 'closurePassingStyle' stamp: 'KenD 3/11/2015 16:22'!
+cpsOverCollExample3
+	"This method should answer true"
+"
+	CardTableMorph cpsOverCollExample3. 
+"
+	| sum |
+	sum := 0.
+	"Chained loop"
+	^(CardTableMorph 
+		cpsOverColl: { 1. 2. 3. 4. } 
+		do: [ :elt1 :next1 | 
+			sum := sum + elt1.
+			next1 value
+		]
+		next: [ (CardTableMorph 
+					cpsOverColl: { 3. 2. 1. }
+					do: [ :elt2 :next2 | 
+						sum := sum + elt2.
+						next2 value
+					]
+					next: [sum]) value
+		]) value = 16! !
 
 !CardTableMorph class methodsFor: 'class initialization' stamp: 'KenD 10/25/2004 08:16'!
 includeInNewMorphMenu
@@ -5161,6 +5250,107 @@ randomWinnerText
 
 	^textArray at: ((Random new seed: seed) nextInt: (textArray size))! !
 
+!CardTableMorph class methodsFor: 'testing' stamp: 'KenD 3/11/2015 08:36'!
+slide: aMorph to: endPoint nSteps: numSteps delay: milliSecondsDelay next: nextAction
+	"Slide from current to new position -- in owner's coordinates"
+	"Nota Bene: Asynchronous.  When complete,  nextAction value"
+
+	| startPoint delta stepCount |
+	Transcript
+				show: 'sliding to '; 
+				show: endPoint; 
+				newLine.
+
+	startPoint _ aMorph morphPosition.
+	delta _ (endPoint - startPoint) / numSteps.
+	stepCount := 0.
+	aMorph when: #morphicStep 
+			  evaluate: [ :ignoredArgument |
+			stepCount := stepCount + 1.
+			
+"			Transcript showOnDisplay: true; display.  
+			Transcript
+				show: 'sliding to '; 
+				show: (startPoint + (stepCount  * delta)) rounded; 
+				newLine.
+"
+			(stepCount < numSteps)
+			ifTrue: [ aMorph morphPosition: (startPoint + (stepCount  * delta)) rounded; redrawNeeded ]
+			ifFalse: [ "done"
+				aMorph stopStepping.
+				aMorph morphPosition: endPoint.
+				aMorph removeActionsForEvent: #morphicStep.
+				nextAction value
+			]
+	].
+	aMorph startSteppingStepTime: milliSecondsDelay
+! !
+
+!CardTableMorph class methodsFor: 'testing' stamp: 'KenD 3/11/2015 13:09'!
+testCardMove
+"
+	CardTableMorph testCardMove inspect.
+	[ Use Inspector to 'self delete' aCard ]
+	An open Transcript shoud show
+	  Before Move <time1>
+	  After Start Move <time2>
+	  After Move Complete <time3>
+"
+	| aCard |
+	aCard := CardMorph the: #Ace of: #Spades.
+	aCard openInWorld.
+	aCard morphPosition: 100 @ 230.
+	Transcript show: 'Before Move'; show: (Time now); newLine.
+	self slide: aCard 
+		to: 230@400 
+		nSteps: 30 
+		delay: 20 
+		next: [ Transcript show: 'After Move Complete'; show: (Time now); newLine ].
+	Transcript show: 'After Start Move'; show: (Time now); newLine.
+	^aCard! !
+
+!CardTableMorph class methodsFor: 'testing' stamp: 'KenD 3/11/2015 16:02'!
+testCardMove2
+"
+	CardTableMorph testCardMove2 inspect.
+
+	An open Transcript shoud show
+	  Before Move <time1>
+	  After Start Move <time2>
+	  After Move Complete <time3>
+"
+	| aCard  |
+	aCard := CardMorph the: #Ace of: #Spades.
+	aCard openInWorld.
+	aCard morphPosition: 100 @ 230.
+	
+	Transcript show: 'Before Move '; show: (Time now); newLine.
+
+	(CardTableMorph  "xLoop"
+		cpsOverColl: { 200. 300. 400.  } 
+		do: [ :x :next1 |
+				(CardTableMorph "yLoop"
+							cpsOverColl: { 200. 250. 300. 350.  }
+							do: [ :y :next2 | 
+									(CardTableMorph
+										slide: aCard 
+										to: x @ y
+										nSteps: 10 
+										delay: 20 
+										next: next2).
+							]
+							next: next1) value
+		] 
+		next: [ Transcript 
+					show: 'After Move Complete '; 
+					show: (Time now); 
+					newLine ]		
+	) value.
+	
+	Transcript show: 'After Start Move'; show: (Time now); newLine.
+	
+	^aCard! !
+
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 13:46'!
 column: columnMorph wantsDropOf: aCardOrColumnMorph 
 	"Answer true if Column is empty or if (lowest)
@@ -5222,43 +5412,50 @@ deck
 
 	^deck! !
 
-!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 10/13/2011 21:19'!
+!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/11/2015 17:10'!
 dropComplete
 	"Check to see if any cards can be auto-moved to piles.
 	Keep moving cards up if legal unless the lowest face value
 	of a Card in any Pile is significantly less than the others
 	as noted by #maxFaceNumberToMoveToPiles."
 	
-	self inCardMove 
-		"already doing this"
-		ifTrue: [ ^false ]
-		ifFalse: 
-			[[ | goAgain |
-				self inCardMove: true.
-			 	goAgain := true.
-				[ goAgain ] whileTrue:
-					[ | maxFaceToMove |
-				      goAgain := false.
-					 maxFaceToMove := self maxFaceNumberToMoveToPiles.
-					 self spares 
-						do: [ :container |
-							 (self possiblyAnimateCardsFrom: container 
-								   ifFaceLessOrEqualTo: maxFaceToMove)
-							 ifTrue: [ goAgain := true. ].
-						].
-			  		 self columns
-						do: [ :container |
-							  (self possiblyAnimateCardsFrom: container 
-								   ifFaceLessOrEqualTo: maxFaceToMove) 
-							  ifTrue: [ goAgain := true. ].
-						]
-				].
-				self inCardMove: false.
-				self gameIsWon
-				ifTrue: [ self showWinnerText ]
-			] newProcess resume. "Asynch update"
+	| table mainLoop |
 
-			] ! !
+	self inCardMove ifTrue: [ ^false ]. "already doing this"
+	
+	table := self. "For reference from closure"
+	table inCardMove: true.
+	table goAgain: true.
+	
+	mainLoop := [
+		table goAgain 
+		ifFalse: [
+			table inCardMove: false.
+			table gameIsWon ifTrue: [ table showWinnerText ]
+		]
+		ifTrue: [  | maxFaceToMove spareLoop |
+			table goAgain: false.
+			 maxFaceToMove := table maxFaceNumberToMoveToPiles.
+			 (CardTableMorph 
+				cpsOverColl: table spares
+				do:  [ :spare :next1 |
+						table possiblyAnimateCardsFrom: spare 
+							    ifFaceLessOrEqualTo: maxFaceToMove
+							    next: next1
+				]
+				next: [ (CardTableMorph
+								cpsOverColl: table columns
+								do: [ :column :next2 |
+							  		  table possiblyAnimateCardsFrom: column 
+								   		ifFaceLessOrEqualTo: maxFaceToMove
+										next: next2
+								]
+								next: mainLoop) value
+				])  value
+			]
+	].
+	
+	mainLoop value! !
 
 !FreeCell methodsFor: 'testing' stamp: 'KenD 11/6/2004 17:12'!
 gameIsWon
@@ -5420,13 +5617,15 @@ numberOfFreeCells
 	self columns do: [ :colm |  colm  isEmpty ifTrue: [numFree := numFree + 1]].
 	^numFree! !
 
-!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:45'!
+!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:10'!
 pickLegalFor: aCard 
 	"Answer true if picking up a card from its container is a legal move."
 	| cardContainer |
 	cardContainer := aCard owner.
+	
+cardContainer ifNil: [self error: 'Bad logic'].
 
-	self moveStart: cardContainer. "for Undo"
+	aCard setProperty: #moveStart toValue: cardContainer.  "for Undo"
 	(cardContainer isKindOf: CardContainerMorph)
 		ifFalse: [^ false].
 	cardContainer class = CardSpareMorph
@@ -5632,41 +5831,70 @@ newGame
 	
 	^ self newColumn initialize openInWorld! !
 
-!Klondike methodsFor: 'auto-move' stamp: 'KenD 11/23/2004 11:01'!
-animateMoveFrom: aContainer to: otherContainer moving: someCard
-	"Do the animation.  If inUndo, do fixup as required."
+!Klondike methodsFor: 'undo' stamp: 'KenD 3/20/2015 19:31'!
+addingCardOrCards: cardMorph toContainer: cardContainer
+	"Container is about to add a Card or Cards.  Remember undo action."
 
-	| otherSizeAtStart |
-	otherSizeAtStart := otherContainer submorphs size.
-	super animateMoveFrom: aContainer 
-			to: otherContainer 
-			moving: someCard.
-	inUndo "fixup"
-	ifTrue: [ 
-		(aContainer isKindOf: CardColumnMorph)
-			ifTrue: [ aContainer showTopCard ].
-		(aContainer isKindOf: CardDiscardMorph)
-			ifTrue: [ aContainer showTopCards ].
-		"@@FIXME: only if were hidden before"
-		(otherContainer isKindOf: CardColumnMorph)
-			ifTrue: [ | cards numCardsMoved | 
-				cards := otherContainer submorphs.
-				numCardsMoved := (cards size) - otherSizeAtStart.
-				(cards size = (numCardsMoved + 1)) 
-				ifTrue: [ (cards at: (numCardsMoved + 1)) makeFaceDown. ^true ].
-				(cards size > (numCardsMoved + 1))
-				ifTrue: [ ((cards at: (numCardsMoved + 2)) isFaceUp)
-						ifFalse: [ (cards at: (numCardsMoved + 1)) makeFaceDown ]
+	| startContainer |
+	startContainer := cardMorph valueOfProperty: #moveStart.
+	cardMorph removeProperty:  #moveStart.
+	((startContainer isKindOf: CardColumnMorph)
+		and: [ (startContainer submorphs size) > 0 
+			and: [ startContainer topCard isFaceDown ] ])
+		ifTrue: [ | cardToFlip | "Remember to flip card if required"
+			cardToFlip  := startContainer topCard.
+			cardToFlip makeFaceUp; redrawNeeded.
+			self inUndo ifFalse: [
+				self pushUndoObject: 
+					[ :table :nextAction | 
+					 	table animateMoveFrom: cardContainer 
+							    to: startContainer 
+							    moving: cardMorph
+							    next: [ cardToFlip flip; redrawNeeded. nextAction value ] 
+					]
+			]
+		]
+		ifFalse: [ "startContainer not a card coumn"
+			(startContainer isKindOf: CardDiscardMorph)
+			ifTrue: [ 
+				startContainer showTopCards.
+				self inUndo ifFalse: [ 
+					self pushUndoObject: 
+						[ :table :nextAction | 
+						 table animateMoveFrom: cardContainer 
+								to: startContainer 
+								moving: cardMorph
+								next: [ startContainer showTopCards. nextAction value ]
+					]
 				]
 			]
-	]! !
+			ifFalse: [ "no special action"
+				self inUndo ifFalse: [
+					self pushUndoObject: 
+						[ :table :nextAction | 
+						 table animateMoveFrom: cardContainer 
+								to: startContainer 
+								moving: cardMorph
+								next: nextAction ]
+				]
+			].
+		]
+		
+		
+
+ ! !
 
 !Klondike methodsFor: 'accessing' stamp: 'KenD 11/19/2004 12:18'!
 cardDeck
 
 	^cardDeck! !
 
-!Klondike methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:26'!
+!Klondike methodsFor: 'auto-move' stamp: 'KenD 3/13/2015 17:55'!
+cardIndexFor: aCard within: aCardColumn
+
+	^ aCardColumn submorphs indexOf: aCard ifAbsent: [ ^ 0 ].! !
+
+!Klondike methodsFor: 'event handling' stamp: 'KenD 3/17/2015 19:30'!
 click: evt from: deckMorph
 	"Handle click events from CardDeckMorph."
 "
@@ -5682,16 +5910,24 @@ click: evt from: deckMorph
 			1 to: (3 min: deckMorph numCards) 
 				do: [ :ignored | discards addCard: deckMorph takeTopCard ].
 				
-			self pushUndoObject: (CardUndoAction from: discards
+			self pushUndoObject: [ :table :nextAction |
+										  table animateMoveFrom: discards
 												to: deckMorph
-												moving: bottomCard)
+												moving: bottomCard
+												next: [ discards showTopCards. 
+													     nextAction value 
+												]
+			]
 	]
 	ifTrue: [
 		[ discards isEmpty ]
 			whileFalse: [ deck addCard: discards takeTopCard ].
-		self pushUndoObject: (CardUndoAction from: deckMorph 
-												to: discards
-												moving: nil "special case")
+		"Put 'em back if asked"
+		self pushUndoObject: [ :table :nextAction |
+				[ deck isEmpty ]
+					whileFalse: [ discards addCard: deck takeTopCard ].
+				nextAction value
+		] 
  	].
 
 	evt wasHandled: true! !
@@ -5758,37 +5994,42 @@ discard
 
 	^discards! !
 
-!Klondike methodsFor: 'auto-move' stamp: 'KenD 10/14/2011 16:20'!
+!Klondike methodsFor: 'auto-move' stamp: 'KenD 3/14/2015 15:04'!
 dropComplete
 	"Show top Card in Columns & Discard; check for automove or a winner."
 	
-	| goAgain |
-	self inCardMove ifTrue: [ ^false ]. "Already doing this?"
-	self columns do: [ :col | col showTopCard ].
-	self discard showTopCards.
-	self inCardMove: true.
+	| table mainLoop |
+	self inCardMove ifTrue: [ ^false ]. "Already doing this"
+	
+	table := self.
 
-	goAgain := true.
-	[
-		[ goAgain ]
-		whileTrue: [ | maxFaceToMove |
-			goAgain := false.
-			maxFaceToMove := self maxFaceNumberToMoveToPiles.
-			self columns
-				do: [ :column |
-				 	(self possiblyAnimateCardsFrom: column 
-							ifFaceLessOrEqualTo: maxFaceToMove) 
-								 ifTrue: [ column showTopCard.
-										  goAgain := true. ].
-				].
-			(self possiblyAnimateCardsFrom: self discard
-						ifFaceLessOrEqualTo: maxFaceToMove) 
-							 ifTrue: [ goAgain := true. ].
-		].
-		self inCardMove: false.
-		self gameIsWon ifTrue: [ self showWinnerText ]
-	] newProcess resume. "Asynch update"
-! !
+	table inCardMove: true.
+	table goAgain: true.
+
+	mainLoop := [
+		table goAgain 
+		ifFalse: [	
+			table inCardMove: false.
+			table gameIsWon ifTrue: [ table showWinnerText ]
+		]
+		ifTrue: [ | maxFaceToMove |
+			table goAgain: false.
+			maxFaceToMove := table maxFaceNumberToMoveToPiles.
+			(CardTableMorph 
+				cpsOverColl: table columns
+				do:  [ :column :next |
+						table possiblyAnimateCardsFrom: column 
+							    ifFaceLessOrEqualTo: maxFaceToMove
+							    next: [
+								table possiblyAnimateCardsFrom: table discard
+									    ifFaceLessOrEqualTo: maxFaceToMove
+									    next: next ]
+				]			
+				next: mainLoop) value
+		]
+	].
+
+	mainLoop value.! !
 
 !Klondike methodsFor: 'testing' stamp: 'KenD 11/17/2004 12:42'!
 gameIsWon
@@ -5949,13 +6190,15 @@ newGame
 		dealCards;
 		redrawNeeded ! !
 
-!Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 1/10/2013 19:33'!
+!Klondike methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:10'!
 pickLegalFor: aCard 
 	"Answer true if picking up a card from its container is a legal move."
 	| cardContainer |
 	cardContainer := aCard owner.
+	
+cardContainer ifNil: [self error: 'Bad logic'].
 
-	self moveStart: cardContainer. "for Undo"
+	aCard setProperty: #moveStart toValue: cardContainer.  "for Undo"
 	(cardContainer isKindOf: CardContainerMorph)
 		ifFalse: [^ false].
 	cardContainer class = CardDiscardMorph
