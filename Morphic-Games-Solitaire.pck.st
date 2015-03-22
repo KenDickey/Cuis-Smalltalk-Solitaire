@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 21 March 2015 at 8:24:02.940607 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 22 March 2015 at 2:06:58.311555 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 50!
-!requires: 'Graphics-Files-Additional' 1 nil nil!
+!provides: 'Morphic-Games-Solitaire' 1 54!
 !requires: 'Cuis-Base' 42 2203 nil!
+!requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -527,13 +527,14 @@ startOver
 
 	index := 0! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:19'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/22/2015 13:39'!
 acceptDroppingMorph: aMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
 
 	| table |
-	table := targetTable.
+	table := self targetTable.
+"Transcript show: table asString; show: ' Drop of ',  (aMorph face asString), ' of ', (aMorph suit asString); newLine."
 	self addCard: aMorph.
 	aMorph submorphs reverseDo: [:aCard | self addCard: aCard].
 	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ]
@@ -1329,14 +1330,13 @@ enable
 	self redrawNeeded.
 	^self! !
 
-!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 11/6/2004 18:24'!
+!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 14:06'!
 handlesMouseDown: evt
 	"False if not enabled"
 	
 	self isDisabled
 	ifTrue: [ ^false ]
-	ifFalse: [ ^super handlesMouseDown: evt ]
-! !
+	ifFalse: [ ^super handlesMouseDown: evt ]! !
 
 !EnableDisableButton methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:40'!
 initialize
@@ -1366,6 +1366,13 @@ labelStringMorph
 
 	self allMorphsDo: [:m | (m isKindOf: StringMorph) ifTrue: [^m]].
 	^ nil! !
+
+!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 13:47'!
+mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition
+
+	self isEnabled "guard condition"
+	ifTrue: [ super mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition ]
+! !
 
 !EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
 origColor
@@ -4512,13 +4519,14 @@ aboutToBeGrabbedBy: aHand
 	^super aboutToBeGrabbedBy: aHand 
 ! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/20/2015 18:44'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:39'!
 addingCardOrCards: cardMorph toContainer: cardContainer
 	"Container is about to add a Card or Cards.  Remember undo action."
 
 	| startContainer |
 	self inUndo 
 	  ifFalse: [
+"Transcript show: 'Pushing undo for ',  (cardMorph face asString), ' of ', (cardMorph suit asString); newLine."
 		startContainer := cardMorph valueOfProperty: #moveStart.
 		cardMorph removeProperty:  #moveStart.
 		self pushUndoObject: 
@@ -4674,10 +4682,16 @@ inUndo
 
 	^inUndo! !
 
-!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:58'!
-inUndo: aBoolean
+!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 3/22/2015 13:54'!
+inUndo: inUndoBool
 
-	^inUndo := aBoolean! !
+	inUndoBool 
+	ifTrue: [ self undoButton disable ]
+	ifFalse:  [ 
+		self undoStackIsEmpty
+		ifFalse: [ self undoButton enable ]
+	].
+	^inUndo := inUndoBool! !
 
 !CardTableMorph methodsFor: 'initialization' stamp: 'KenD 3/9/2015 16:40'!
 initialize
@@ -4854,16 +4868,12 @@ numberOfMoveSteps
 
 	^ 40! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 19:08'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:55'!
 popUndoObject
 	
-	| undoObject |
-	undoObject := self undoStack pop.
-	self undoStackIsEmpty
-	ifTrue: [ self undoButton disable ].
-	^undoObject! !
+	^self undoStack pop! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/20/2015 19:06'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/22/2015 13:38'!
 possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum next: nextAction
 	"See if we can move our top Card into a Pile. 
 	Set  'table goAgain: true' if we were able to move a card."
@@ -4882,6 +4892,7 @@ possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum next: next
 				ifFalse: [ next value ]
 				ifTrue: [ 
 						table goAgain: true.
+"Transcript show: 'Animate ', (aCard face asString), ' of ', (aCard suit asString); newLine."
 						table animateMoveFrom: aCardContainer to: pile next: next.
 					]
 				]
@@ -4890,7 +4901,7 @@ possiblyAnimateCardsFrom: aCardContainer ifFaceLessOrEqualTo: faceNum next: next
 			
 		pilesLoop value! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 11/18/2004 19:03'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:58'!
 pushUndoObject: anUndoObject
 
 	self undoButton enable.
@@ -5040,15 +5051,14 @@ undoButton
 	
 	^undoButton! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/17/2015 20:00'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:50'!
 undoMove
 
 	| table |
 	table := self.
 	table removeWinnerText.
 	table inUndo: true.
-	"table undoButton disable."
-	(self popUndoObject) value: table value: [table inUndo: false. "table undoButton enable"]
+	(self popUndoObject) value: table value: [ table inUndo: false ]
 	
 
 ! !
@@ -5831,45 +5841,43 @@ newGame
 	
 	^ self newColumn initialize openInWorld! !
 
-!Klondike methodsFor: 'undo' stamp: 'KenD 3/20/2015 19:31'!
+!Klondike methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:40'!
 addingCardOrCards: cardMorph toContainer: cardContainer
 	"Container is about to add a Card or Cards.  Remember undo action."
 
 	| startContainer |
 	startContainer := cardMorph valueOfProperty: #moveStart.
 	cardMorph removeProperty:  #moveStart.
+	self inUndo ifTrue: [ ^ nil ].
+"Transcript show: 'Pushing undo for ',  (cardMorph face asString), ' of ', (cardMorph suit asString); newLine."
+	"Needs Flip?"
 	((startContainer isKindOf: CardColumnMorph)
 		and: [ (startContainer submorphs size) > 0 
 			and: [ startContainer topCard isFaceDown ] ])
 		ifTrue: [ | cardToFlip | "Remember to flip card if required"
 			cardToFlip  := startContainer topCard.
 			cardToFlip makeFaceUp; redrawNeeded.
-			self inUndo ifFalse: [
-				self pushUndoObject: 
+			self pushUndoObject: 
 					[ :table :nextAction | 
 					 	table animateMoveFrom: cardContainer 
 							    to: startContainer 
 							    moving: cardMorph
 							    next: [ cardToFlip flip; redrawNeeded. nextAction value ] 
 					]
-			]
 		]
-		ifFalse: [ "startContainer not a card coumn"
+		ifFalse: [ "Need to show Discards?"
 			(startContainer isKindOf: CardDiscardMorph)
 			ifTrue: [ 
 				startContainer showTopCards.
-				self inUndo ifFalse: [ 
-					self pushUndoObject: 
+				self pushUndoObject: 
 						[ :table :nextAction | 
 						 table animateMoveFrom: cardContainer 
 								to: startContainer 
 								moving: cardMorph
 								next: [ startContainer showTopCards. nextAction value ]
 					]
-				]
 			]
 			ifFalse: [ "no special action"
-				self inUndo ifFalse: [
 					self pushUndoObject: 
 						[ :table :nextAction | 
 						 table animateMoveFrom: cardContainer 
@@ -5877,7 +5885,6 @@ addingCardOrCards: cardMorph toContainer: cardContainer
 								moving: cardMorph
 								next: nextAction ]
 				]
-			].
 		]
 		
 		
