@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 22 March 2015 at 2:06:58.311555 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 22 March 2015 at 11:45:58.080274 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 54!
+!provides: 'Morphic-Games-Solitaire' 1 55!
 !requires: 'Cuis-Base' 42 2203 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -5791,7 +5791,7 @@ saveGameToDataStream: aDataStream
 	aDataStream nextPut: someData.
 ! !
 
-!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 7/15/2011 16:50'!
+!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/22/2015 23:45'!
 spare: spareMorph wantsDropOf: aCardOrColumnMorph 
 	"Answer true if Spare is empty and Card is singleton."
 	| card |
@@ -5803,7 +5803,7 @@ spare: spareMorph wantsDropOf: aCardOrColumnMorph
 	(self isMyCard: card) ifFalse: [^false]. 
 	
 	spareMorph isEmpty
-		ifTrue: [^ card isNil not]
+		ifTrue: [^ (card isNil not) and: [card submorphs size = 0]] "only holds 1 card"
 		ifFalse: [^ false]! !
 
 !FreeCell methodsFor: 'accessing' stamp: 'KenD 10/22/2004 18:50'!
