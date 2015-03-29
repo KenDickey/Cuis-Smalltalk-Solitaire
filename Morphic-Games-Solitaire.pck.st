@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 22 March 2015 at 11:45:58.080274 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 28 March 2015 at 6:48:39.444986 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 55!
+!provides: 'Morphic-Games-Solitaire' 1 56!
 !requires: 'Cuis-Base' 42 2203 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -4519,16 +4519,16 @@ aboutToBeGrabbedBy: aHand
 	^super aboutToBeGrabbedBy: aHand 
 ! !
 
-!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:39'!
+!CardTableMorph methodsFor: 'undo' stamp: 'KenD 3/28/2015 18:47'!
 addingCardOrCards: cardMorph toContainer: cardContainer
 	"Container is about to add a Card or Cards.  Remember undo action."
 
 	| startContainer |
-	self inUndo 
+	startContainer := cardMorph valueOfProperty: #moveStart.
+	cardMorph removeProperty:  #moveStart.
+	((self inUndo) or: [startContainer = cardContainer ])
 	  ifFalse: [
 "Transcript show: 'Pushing undo for ',  (cardMorph face asString), ' of ', (cardMorph suit asString); newLine."
-		startContainer := cardMorph valueOfProperty: #moveStart.
-		cardMorph removeProperty:  #moveStart.
 		self pushUndoObject: 
 				[ :table :nextAction | 
 					 table animateMoveFrom: cardContainer 
@@ -5841,15 +5841,17 @@ newGame
 	
 	^ self newColumn initialize openInWorld! !
 
-!Klondike methodsFor: 'undo' stamp: 'KenD 3/22/2015 13:40'!
+!Klondike methodsFor: 'undo' stamp: 'KenD 3/28/2015 18:45'!
 addingCardOrCards: cardMorph toContainer: cardContainer
 	"Container is about to add a Card or Cards.  Remember undo action."
 
 	| startContainer |
 	startContainer := cardMorph valueOfProperty: #moveStart.
 	cardMorph removeProperty:  #moveStart.
-	self inUndo ifTrue: [ ^ nil ].
+	((self inUndo) or: [startContainer = cardContainer ]) ifTrue: [ ^ nil ].
+	
 "Transcript show: 'Pushing undo for ',  (cardMorph face asString), ' of ', (cardMorph suit asString); newLine."
+
 	"Needs Flip?"
 	((startContainer isKindOf: CardColumnMorph)
 		and: [ (startContainer submorphs size) > 0 
