@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 28 March 2015 at 6:48:39.444986 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 30 March 2015 at 8:19:37.369783 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 56!
+!provides: 'Morphic-Games-Solitaire' 1 57!
 !requires: 'Cuis-Base' 42 2203 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -625,18 +625,22 @@ numCards
 	"Answer the number of AltCardMorphs I contain."
 	^ self submorphCount! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:06'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/30/2015 20:17'!
 okToPickUp: aCard
 	"Answer false unless I have a table, else ask the table."
 
-	| table result |
+	| table result feedback |
 	table := self targetTable.
 	table isNil
 		ifTrue: [ result :=  false ]
 		ifFalse: [ result := (table pickLegalFor: aCard) ].
 "
 	Transcript newLine; show: (self name , ' got #okToPickUp:  answered ' , result printString ).  
-"	
+"
+	result ifFalse: [
+		feedback := HoverHelpMorph contents: 'illegal move'.
+		feedback popUpForHand: (feedback world activeHand) 
+	].
 	^ result! !
 
 !CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:14'!
