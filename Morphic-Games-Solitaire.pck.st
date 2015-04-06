@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 30 March 2015 at 8:19:37.369783 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 5 April 2015 at 6:59:55.564086 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 57!
+!provides: 'Morphic-Games-Solitaire' 1 58!
 !requires: 'Cuis-Base' 42 2203 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -5050,6 +5050,26 @@ slide: aMorph to: endPoint nSteps: numSteps delay: milliSecondsDelay next: nextA
 	].
 	aMorph startSteppingStepTime: milliSecondsDelay! !
 
+!CardTableMorph methodsFor: 'private' stamp: 'KenD 4/5/2015 18:50'!
+undoAll
+	"Test Method -- plays game backward to beginning"
+	
+	| table undoLoop |
+	table := self.
+	table removeWinnerText.
+	table undoStack isEmptyOrNil 
+	ifFalse: [
+		undoLoop := [ 
+			(self undoStack isEmpty)
+			ifTrue: [ table inUndo: false ]
+			ifFalse: [ (self popUndoObject) value: table value: undoLoop ]
+		].
+		table inUndo: true.
+		undoLoop value
+	]
+
+	! !
+
 !CardTableMorph methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:59'!
 undoButton
 	
@@ -6486,13 +6506,13 @@ ifNotEmptyDo: aBlock
 	^self isEmpty ifFalse: [aBlock value: self].
 ! !
 
-!Stack methodsFor: 'testing' stamp: 'stephane.ducasse 12/5/2008 18:22'!
+!Stack methodsFor: 'testing' stamp: 'KenD 4/2/2015 20:36'!
 ifNotEmptyDo: notEmptyBlock ifEmpty: emptyBlock
 	"Evaluate emptyBlock if I'm empty, notEmptyBlock otherwise
 	Evaluate the notEmptyBlock with the receiver as its argument"
 	"copied from Collection"
 
-	^ self isEmpty ifFalse: [notEmptyBlock value: self] ifTrue: emptyBlock! !
+	^ self isEmpty ifFalse: [notEmptyBlock value: self] ifTrue: emptyBlock value! !
 
 !Stack methodsFor: 'private' stamp: 'KenD 12/16/2014 19:15'!
 initialize
