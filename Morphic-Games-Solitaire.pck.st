@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2207] on 5 April 2015 at 6:59:55.564086 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2327] on 23 June 2015 at 9:25:57.26417 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 58!
-!requires: 'Cuis-Base' 42 2203 nil!
+!provides: 'Morphic-Games-Solitaire' 1 59!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
+!requires: 'Cuis-Base' 42 2203 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -6352,12 +6352,13 @@ restoreGameFromDataStream: aDataStream
 		ifFalse: [ Error signal: 'FIXME: Undo save/restore NYI' ].
 	]! !
 
-!Klondike methodsFor: 'testing' stamp: 'KenD 1/11/2013 18:27'!
+!Klondike methodsFor: 'testing' stamp: 'KenD 6/23/2015 21:25'!
 runStartsFrom: aCard in: aColumn
 	"A Card starts a run if all cards above it are in ascending face and
 	alternating color."
 
 	| cardIndex cards cardUnder |
+	aCard isFaceDown ifTrue: [ ^ false ].
 	cards := aColumn submorphs.
 	cardIndex := cards indexOf: aCard.
 	(cardIndex isNil) ifTrue: [ ^false ].
