@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2327] on 23 June 2015 at 9:25:57.26417 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2390] on 29 June 2015 at 12:58:31.642006 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 59!
-!requires: 'Graphics-Files-Additional' 1 nil nil!
+!provides: 'Morphic-Games-Solitaire' 1 60!
 !requires: 'Cuis-Base' 42 2203 nil!
+!requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -4927,7 +4927,7 @@ removeWinnerText
 			            addMorph: labelMorph.
 		winnerText := nil! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 04:42'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 6/29/2015 12:40'!
 restoreGame: dotSuffixString userMessage: aPromptString
 	"Show a file dialog to the user to pick a game's file to restore.
 	Subclasses restore specific data from compressed Deck and CardContainer objects
@@ -4936,7 +4936,7 @@ restoreGame: dotSuffixString userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					oldFileFrom: (FileDirectory default) 
+   					oldFileFrom: (FileDirectory on: (FmFileIOAccessor defaultDirectoryPath )) 
 					withPattern:  '*.' , dotSuffixString; 
 					startUpWithCaption: 'Select Saved Game or click elsewhere'.
 	
@@ -4980,7 +4980,7 @@ runStartsFrom: aCard in: aColumn
 	"cardIndex = 1"
 	^true! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:58'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 6/29/2015 12:38'!
 saveGame: dotSuffix userMessage: aPromptString
 	"Show a file dialog to the user to save a game with dotSuffix (e.g. '*.foo').
 	Subclasses save specific data as compressed Deck and CardContainer objects."
@@ -4988,7 +4988,7 @@ saveGame: dotSuffix userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					newFileFrom: (FileDirectory default) 
+   					newFileFrom: ( FileDirectory on: (FmFileIOAccessor defaultDirectoryPath) )
 					withPattern:  '*.' , dotSuffix; 
 					startUpWithCaption: aPromptString.
 	
