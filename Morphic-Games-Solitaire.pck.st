@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2390] on 29 June 2015 at 12:58:31.642006 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2449] on 12 August 2015 at 7:22:59.59534 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 60!
-!requires: 'Cuis-Base' 42 2203 nil!
+!provides: 'Morphic-Games-Solitaire' 1 61!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
+!requires: 'Cuis-Base' 42 2203 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -86,7 +86,7 @@ EnableDisableButton class
 !classDefinition: #CardMorph category: #'Morphic-Games-Solitaire'!
 ImageMorph subclass: #CardMorph
 	instanceVariableNames: 'cardNumber grabPreowner'
-	classVariableNames: 'ColorNames FaceNames FormsArray SuitNames'
+	classVariableNames: 'ColorNames DropShadowMorph FaceNames FormsArray SuitNames'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
 !classDefinition: 'CardMorph class' category: #'Morphic-Games-Solitaire'!
@@ -527,7 +527,7 @@ startOver
 
 	index := 0! !
 
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/22/2015 13:39'!
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:02'!
 acceptDroppingMorph: aMorph event: evt 
 	"aMorph is a Card which may contain submorphs which 
 	are also Cards.  Add to me."
@@ -535,6 +535,7 @@ acceptDroppingMorph: aMorph event: evt
 	| table |
 	table := self targetTable.
 "Transcript show: table asString; show: ' Drop of ',  (aMorph face asString), ' of ', (aMorph suit asString); newLine."
+	aMorph hideDropShadow.
 	self addCard: aMorph.
 	aMorph submorphs reverseDo: [:aCard | self addCard: aCard].
 	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ]
@@ -1412,7 +1413,7 @@ includeInNewMorphMenu
 	ifTrue: [ ^ (self cardNumber) > (aCard cardNumber) ]
 	ifFalse: [ ^false ].! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:07'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:00'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand. If other cards are above me in a 
 	Card Container, then move them from the Container to being submorphs of me"
@@ -1425,6 +1426,7 @@ aboutToBeGrabbedBy: aHand
 "
 		super aboutToBeGrabbedBy: aHand.
 		self collectCardsAboveMe;
+		showDropShadow;
 		yourself
 	]
 	ifTrue: [^nil]
@@ -1514,6 +1516,35 @@ color
 	ifFalse: [(suitNum = 4)
 			ifTrue: [ ^#Black ]
 			ifFalse: [ ^#Red ]].! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:55'!
+dropShadowForm
+	"Answer the shadow only for the BlockMorph"
+
+	|  srcForm destForm |
+	srcForm := self shadowForm.
+	destForm := srcForm copy.
+	destForm 
+		copy: (0@0 corner: srcForm extent) 
+		from: srcForm 
+		to: 0@0 - self dropShadowOffset 
+		rule: 4. "erase"
+	^ destForm
+! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:51'!
+dropShadowOffset
+
+	^ 6@8! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:48'!
+dropShadowShown
+
+	| dsMorph |
+	dsMorph := self class dropShadowMorph.
+	^ dsMorph 
+		ifNil: [ false ] 
+		ifNotNil: [ submorphs includes: dsMorph ]! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:37'!
 face
@@ -1608,6 +1639,12 @@ height
 
 	^self faceForm height! !
 
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:48'!
+hideDropShadow
+	
+	self dropShadowShown
+		ifTrue: [ self removeMorph: self class dropShadowMorph ]! !
+
 !CardMorph methodsFor: 'testing' stamp: 'KenD 10/28/2004 11:08'!
 isBlack
 	^(self suitColor) == #Black! !
@@ -1632,12 +1669,13 @@ isFaceUp
 isRed
 	^(self suitColor) == #Red! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/13/2015 19:47'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:00'!
 justDroppedInto: aMorph event: anEvent
 	"Someone just dropped me.."
 	
 	"resize"
 	self morphExtent: self minimumExtent.
+	self hideDropShadow.
 	"Tell my container"
 	(self owner isKindOf: CardContainerMorph)
 	ifTrue: [ ^ (self owner) dropComplete ]
@@ -1698,7 +1736,7 @@ processMouseDown: evt localPosition: localEventPosition
 	]
 ! !
 
-!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/21/2013 10:07'!
+!CardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:01'!
 rejectDropMorphEvent: evt
 	"Drop rejected. If have submorphs, give them back to the container."
 "	
@@ -1706,6 +1744,8 @@ rejectDropMorphEvent: evt
 		show: ('>>rejectDropMorphEvent>> :' ,self name ,
 		           ', grabPreowner ' , self grabPreowner name ).
 "
+	self hideDropShadow.
+	
 	(self grabPreowner isKindOf: CardContainerMorph)
 	ifTrue: [self grabPreowner addCard: self.
 		 	self submorphs reverseDo: [ :m | self grabPreowner addCard: m].
@@ -1725,6 +1765,50 @@ saveImageToFile: aFileName
 	"NB: overrited file without question"
 
 	(self form) writePNGfileNamed: aFileName! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:57'!
+setDropShadowMorph
+	"(Re)set dropShadowMorph done when size changes "
+
+	| shadowShown |
+	(self class dropShadowMorph isNil)
+	ifTrue: [ "First Time Init"
+		self class dropShadowMorph: (ImageMorph new image: self dropShadowForm).
+		self class dropShadowMorph morphPosition: self dropShadowOffset.
+		shadowShown := false.
+	]
+	ifFalse: [
+		(shadowShown := self dropShadowShown)
+			ifTrue: [ self hideDropShadow ].
+		self class dropShadowMorph: (ImageMorph new image: self dropShadowForm).
+		self class dropShadowMorph morphPosition: self dropShadowOffset.
+	].
+	shadowShown ifTrue: [ self showDropShadow ].
+
+		
+! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:54'!
+shadowForm
+"
+	(ImageMorph new image: (CardMorph the: #ace of: #spades) shadowForm) openInWorld.
+"
+	| aCanvas stencilForm |
+	aCanvas := BitBltCanvas depth: Display depth over: (0@0 corner: self morphExtent).
+	self drawOn: aCanvas.
+	stencilForm := aCanvas form "asGrayScale". 
+	aCanvas := BitBltCanvas depth: Display depth over: (0@0 corner: self morphExtent). 
+	aCanvas stencil: stencilForm at: 0@0  color: (Color black alpha: 0.3).	 
+	^ aCanvas form! !
+
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:49'!
+showDropShadow
+	
+	self dropShadowShown
+		ifFalse: [ 
+			self setDropShadowMorph.
+			self addMorphBack: self class dropShadowMorph 
+		]! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:37'!
 suit
@@ -1789,6 +1873,16 @@ withCardNumber: cardNum image: form
 	grabPreowner := nil.
 	self image: form;
 		yourself! !
+
+!CardMorph class methodsFor: 'accessing' stamp: 'KenD 8/12/2015 06:46'!
+dropShadowMorph
+
+	^ DropShadowMorph ! !
+
+!CardMorph class methodsFor: 'accessing' stamp: 'KenD 8/12/2015 06:46'!
+dropShadowMorph: newShadowMorph
+
+	DropShadowMorph := newShadowMorph! !
 
 !CardMorph class methodsFor: 'private' stamp: 'KenD 10/5/2006 09:39'!
 encodedStringFromFile: aFileName
@@ -5815,10 +5909,11 @@ saveGameToDataStream: aDataStream
 	aDataStream nextPut: someData.
 ! !
 
-!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/22/2015 23:45'!
+!FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:11'!
 spare: spareMorph wantsDropOf: aCardOrColumnMorph 
 	"Answer true if Spare is empty and Card is singleton."
 	| card |
+	aCardOrColumnMorph hideDropShadow.
 	card := (aCardOrColumnMorph isKindOf: CardMorph)
 				ifTrue: [aCardOrColumnMorph]
 				ifFalse: [aCardOrColumnMorph singletonCard].
