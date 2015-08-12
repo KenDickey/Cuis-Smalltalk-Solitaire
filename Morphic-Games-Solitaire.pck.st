@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2449] on 12 August 2015 at 7:22:59.59534 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2449] on 12 August 2015 at 9:48:48.981249 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 61!
+!provides: 'Morphic-Games-Solitaire' 1 63!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 2203 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -1532,19 +1532,17 @@ dropShadowForm
 	^ destForm
 ! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:51'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 09:47'!
 dropShadowOffset
 
-	^ 6@8! !
+	^ 8@10! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:48'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 07:47'!
 dropShadowShown
 
 	| dsMorph |
-	dsMorph := self class dropShadowMorph.
-	^ dsMorph 
-		ifNil: [ false ] 
-		ifNotNil: [ submorphs includes: dsMorph ]! !
+	dsMorph := self valueOfProperty: #dropShadowMorph ifAbsent: [ ^false ].
+	^ self submorphs includes: dsMorph! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:37'!
 face
@@ -1577,6 +1575,18 @@ flip
 forgetPreowner
 	
 	grabPreowner  := nil! !
+
+!CardMorph methodsFor: 'geometry' stamp: 'KenD 8/12/2015 09:07'!
+fullExtentRect
+
+	"Answer a Rectangle which covers my extent and those of my submorphs -- even when drawn outside my bounds"
+	| rect |
+	rect := 0@0 corner: self morphExtent.
+	self submorphsDo: [ :s | 
+		rect := rect merge: ( Rectangle origin: s morphPosition extent: s morphExtent ) 
+	].
+"Transcript newLine; show: rect printString."
+	^ rect! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 1/15/2013 14:58'!
 grabPreowner
@@ -1639,11 +1649,14 @@ height
 
 	^self faceForm height! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:48'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 07:51'!
 hideDropShadow
 	
-	self dropShadowShown
-		ifTrue: [ self removeMorph: self class dropShadowMorph ]! !
+	self valueOfProperty: #dropShadowMorph
+		 ifPresentDo: [ :dsMorph |
+			self removeMorph: dsMorph.
+			self removeProperty: #dropShadowMorph
+	]! !
 
 !CardMorph methodsFor: 'testing' stamp: 'KenD 10/28/2004 11:08'!
 isBlack
@@ -1766,48 +1779,39 @@ saveImageToFile: aFileName
 
 	(self form) writePNGfileNamed: aFileName! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:57'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 07:49'!
 setDropShadowMorph
-	"(Re)set dropShadowMorph done when size changes "
 
-	| shadowShown |
-	(self class dropShadowMorph isNil)
-	ifTrue: [ "First Time Init"
-		self class dropShadowMorph: (ImageMorph new image: self dropShadowForm).
-		self class dropShadowMorph morphPosition: self dropShadowOffset.
-		shadowShown := false.
-	]
-	ifFalse: [
-		(shadowShown := self dropShadowShown)
-			ifTrue: [ self hideDropShadow ].
-		self class dropShadowMorph: (ImageMorph new image: self dropShadowForm).
-		self class dropShadowMorph morphPosition: self dropShadowOffset.
-	].
-	shadowShown ifTrue: [ self showDropShadow ].
+	| dsMorph |
+	dsMorph := ImageMorph new image: self dropShadowForm.
+	dsMorph morphPosition: self dropShadowOffset.
+	self setProperty: #dropShadowMorph toValue: dsMorph 
 
 		
 ! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:54'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 09:43'!
 shadowForm
 "
 	(ImageMorph new image: (CardMorph the: #ace of: #spades) shadowForm) openInWorld.
 "
 	| aCanvas stencilForm |
-	aCanvas := BitBltCanvas depth: Display depth over: (0@0 corner: self morphExtent).
-	self drawOn: aCanvas.
-	stencilForm := aCanvas form "asGrayScale". 
-	aCanvas := BitBltCanvas depth: Display depth over: (0@0 corner: self morphExtent). 
+	aCanvas := BitBltCanvas depth: Display depth over: self fullExtentRect.
+	aCanvas image: self form at: 0@0.
+	self submorphs reverseDo: [ :m | aCanvas image: m form at: m morphPosition ].
+	stencilForm := aCanvas form. 
+	aCanvas := BitBltCanvas depth: Display depth over: self fullExtentRect. 
 	aCanvas stencil: stencilForm at: 0@0  color: (Color black alpha: 0.3).	 
 	^ aCanvas form! !
 
-!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 06:49'!
+!CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 07:57'!
 showDropShadow
 	
-	self dropShadowShown
-		ifFalse: [ 
+	self 
+		valueOfProperty: #dropShadowMorph
+		ifAbsent: [
 			self setDropShadowMorph.
-			self addMorphBack: self class dropShadowMorph 
+			self addMorphBack: (self valueOfProperty: #dropShadowMorph)
 		]! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 10/20/2004 08:37'!
