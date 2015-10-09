@@ -1,8 +1,8 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2449] on 12 August 2015 at 9:48:48.981249 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2525] on 9 October 2015 at 3:59:05.129091 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 63!
+!provides: 'Morphic-Games-Solitaire' 1 64!
+!requires: 'Cuis-Base' 42 2525 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
-!requires: 'Cuis-Base' 42 2203 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -5025,7 +5025,7 @@ removeWinnerText
 			            addMorph: labelMorph.
 		winnerText := nil! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 6/29/2015 12:40'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/9/2015 15:47'!
 restoreGame: dotSuffixString userMessage: aPromptString
 	"Show a file dialog to the user to pick a game's file to restore.
 	Subclasses restore specific data from compressed Deck and CardContainer objects
@@ -5034,17 +5034,20 @@ restoreGame: dotSuffixString userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					oldFileFrom: (FileDirectory on: (FmFileIOAccessor defaultDirectoryPath )) 
+   					oldFileFrom: (FileDirectory on: (Smalltalk imagePath)) 
 					withPattern:  '*.' , dotSuffixString; 
 					startUpWithCaption: 'Select Saved Game or click elsewhere'.
 	
 	(dialogResult isNil)
 	ifTrue: [ ^nil ]
-	ifFalse: [ | aDataStream filePath |
+	ifFalse: [ |  filePath |
 		filePath := (dialogResult directory) fullPathFor: (dialogResult name).
-		aDataStream := DataStream oldFileNamed: filePath.
-		self restoreGameFromDataStream: aDataStream.
-		aDataStream close.
+		filePath asFileEntry readStream: [ :file | | aDataStream |
+			file binary.
+			aDataStream := DataStream on: file.
+		     self restoreGameFromDataStream: aDataStream.
+			aDataStream close.
+		].
 		self removeWinnerText. "just in case.."
 	]
 ! !
@@ -5078,7 +5081,7 @@ runStartsFrom: aCard in: aColumn
 	"cardIndex = 1"
 	^true! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 6/29/2015 12:38'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/9/2015 15:54'!
 saveGame: dotSuffix userMessage: aPromptString
 	"Show a file dialog to the user to save a game with dotSuffix (e.g. '*.foo').
 	Subclasses save specific data as compressed Deck and CardContainer objects."
@@ -5086,19 +5089,20 @@ saveGame: dotSuffix userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					newFileFrom: ( FileDirectory on: (FmFileIOAccessor defaultDirectoryPath) )
+   					newFileFrom: ( FileDirectory on: (Smalltalk imagePath) )
 					withPattern:  '*.' , dotSuffix; 
 					startUpWithCaption: aPromptString.
 	
 	(dialogResult isNil)
 	ifTrue: [ ^nil ]
-	ifFalse: [ | aDataStream filePath |
+	ifFalse: [ | filePath |
 		filePath := (dialogResult directory) fullPathFor: (dialogResult name).
-
-		aDataStream := DataStream newFileNamed: 
-			(self ensureFileName: filePath hasSuffix:  '.', dotSuffix).
-		self saveGameToDataStream: aDataStream.
-		aDataStream close
+		filePath := self ensureFileName: filePath hasSuffix:  '.', dotSuffix.
+		filePath asFileEntry writeStream: [ :file | | aDataStream |
+			aDataStream := DataStream on: file. 
+			self saveGameToDataStream: aDataStream.
+			aDataStream close
+		]
 	]! !
 
 !CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 11/8/2004 08:23'!
