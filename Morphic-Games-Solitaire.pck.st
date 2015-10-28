@@ -1,7 +1,7 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2525] on 9 October 2015 at 3:59:05.129091 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2558] on 27 October 2015 at 7:32:23.738608 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 64!
-!requires: 'Cuis-Base' 42 2525 nil!
+!provides: 'Morphic-Games-Solitaire' 1 65!
+!requires: 'Cuis-Base' 42 2558 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
@@ -5025,7 +5025,7 @@ removeWinnerText
 			            addMorph: labelMorph.
 		winnerText := nil! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/9/2015 15:47'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/27/2015 19:19'!
 restoreGame: dotSuffixString userMessage: aPromptString
 	"Show a file dialog to the user to pick a game's file to restore.
 	Subclasses restore specific data from compressed Deck and CardContainer objects
@@ -5034,14 +5034,14 @@ restoreGame: dotSuffixString userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					oldFileFrom: (FileDirectory on: (Smalltalk imagePath)) 
+   					oldFileFrom: Smalltalk imagePath asDirectoryEntry 
 					withPattern:  '*.' , dotSuffixString; 
 					startUpWithCaption: 'Select Saved Game or click elsewhere'.
 	
 	(dialogResult isNil)
 	ifTrue: [ ^nil ]
 	ifFalse: [ |  filePath |
-		filePath := (dialogResult directory) fullPathFor: (dialogResult name).
+		filePath := (dialogResult directory // dialogResult name) pathName.
 		filePath asFileEntry readStream: [ :file | | aDataStream |
 			file binary.
 			aDataStream := DataStream on: file.
@@ -5081,7 +5081,7 @@ runStartsFrom: aCard in: aColumn
 	"cardIndex = 1"
 	^true! !
 
-!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/9/2015 15:54'!
+!CardTableMorph methodsFor: 'fileIn/out' stamp: 'KenD 10/27/2015 19:18'!
 saveGame: dotSuffix userMessage: aPromptString
 	"Show a file dialog to the user to save a game with dotSuffix (e.g. '*.foo').
 	Subclasses save specific data as compressed Deck and CardContainer objects."
@@ -5089,14 +5089,14 @@ saveGame: dotSuffix userMessage: aPromptString
 	| dialogResult |
 	
 	dialogResult := (StandardFileMenu new) 
-   					newFileFrom: ( FileDirectory on: (Smalltalk imagePath) )
+   					newFileFrom: Smalltalk imagePath asDirectoryEntry
 					withPattern:  '*.' , dotSuffix; 
 					startUpWithCaption: aPromptString.
 	
 	(dialogResult isNil)
 	ifTrue: [ ^nil ]
 	ifFalse: [ | filePath |
-		filePath := (dialogResult directory) fullPathFor: (dialogResult name).
+		filePath := (dialogResult directory // dialogResult name) pathName.
 		filePath := self ensureFileName: filePath hasSuffix:  '.', dotSuffix.
 		filePath asFileEntry writeStream: [ :file | | aDataStream |
 			aDataStream := DataStream on: file. 
