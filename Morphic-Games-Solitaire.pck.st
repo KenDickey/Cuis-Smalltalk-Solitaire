@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2563] on 28 October 2015 at 9:21:28.903385 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2621] on 2 January 2016 at 7:20:52.302006 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 66!
+!provides: 'Morphic-Games-Solitaire' 1 67!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 2563 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
@@ -4795,7 +4795,7 @@ inUndo: inUndoBool
 	].
 	^inUndo := inUndoBool! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 3/9/2015 16:40'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/2/2016 19:19'!
 initialize
 	"Set up typical properties for subclasses."
 	super initialize.
@@ -4808,7 +4808,7 @@ initialize
 		 inUndo: false;
 		 color: (Color r: 0.304 g: 0.833 b: 0.075);  "green felt"
 		 morphPositionInWorld: (30 @ 26); 
-		 morphExtent: (710 @ 740);
+		 morphExtent: (800 @ 740);
 		 "setBorderWidth: 2 borderColor: Color black;"
 		 yourself
 	"subclasses setup the layout"! !
