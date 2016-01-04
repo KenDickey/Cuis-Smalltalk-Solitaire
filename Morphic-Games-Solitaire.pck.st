@@ -1,4 +1,4 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2621] on 2 January 2016 at 7:20:52.302006 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2649] on 4 January 2016 at 1:51:26.432246 pm'!
 'Description Solitaire Card Games'!
 !provides: 'Morphic-Games-Solitaire' 1 67!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
@@ -4795,7 +4795,7 @@ inUndo: inUndoBool
 	].
 	^inUndo := inUndoBool! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/2/2016 19:19'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 3/9/2015 16:40'!
 initialize
 	"Set up typical properties for subclasses."
 	super initialize.
@@ -4808,7 +4808,7 @@ initialize
 		 inUndo: false;
 		 color: (Color r: 0.304 g: 0.833 b: 0.075);  "green felt"
 		 morphPositionInWorld: (30 @ 26); 
-		 morphExtent: (800 @ 740);
+		 morphExtent: (710 @ 740);
 		 "setBorderWidth: 2 borderColor: Color black;"
 		 yourself
 	"subclasses setup the layout"! !
@@ -5111,11 +5111,12 @@ saveGametoDataStream: aDataStream
 
 	Error signal: 'Subclass must implement!!'! !
 
-!CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/15/2013 16:00'!
+!CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/4/2016 13:51'!
 showWinnerText
 	"Display Winner Message to user"
 
 	saveGameButton disable. "No use saving a won game"
+	Semaphore new waitTimeoutMSecs: 500. "smoother appearance after last card move"
 	winnerText := (StringMorph contents: (CardTableMorph randomWinnerText))
 					emphasis: 1; "bold"
 					font:  (AbstractFont familyName: 'DejaVu' pointSize: 22).
