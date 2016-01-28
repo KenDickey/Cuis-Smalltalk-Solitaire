@@ -1,8 +1,9 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2649] on 4 January 2016 at 1:51:26.432246 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2676] on 28 January 2016 at 2:01:00.136611 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 67!
+!provides: 'Morphic-Games-Solitaire' 1 68!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 2563 nil!
+!requires: 'Goodies' 1 3 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -4720,6 +4721,11 @@ buildButton: aButton
 	 	^aButton
 ! !
 
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:43'!
+defaultExtent
+
+	self subclassResponsibility ! !
+
 !CardTableMorph methodsFor: 'drawing' stamp: 'KenD 8/26/2013 17:36'!
 drawOn: aCanvas
 
@@ -4795,7 +4801,7 @@ inUndo: inUndoBool
 	].
 	^inUndo := inUndoBool! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 3/9/2015 16:40'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:43'!
 initialize
 	"Set up typical properties for subclasses."
 	super initialize.
@@ -4808,7 +4814,7 @@ initialize
 		 inUndo: false;
 		 color: (Color r: 0.304 g: 0.833 b: 0.075);  "green felt"
 		 morphPositionInWorld: (30 @ 26); 
-		 morphExtent: (710 @ 740);
+		 morphExtent: self defaultExtent; "delegate to subclasses"
 		 "setBorderWidth: 2 borderColor: Color black;"
 		 yourself
 	"subclasses setup the layout"! !
@@ -5549,6 +5555,11 @@ deck
 
 	^deck! !
 
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:46'!
+defaultExtent
+
+	^ 890 @ 780.! !
+
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/11/2015 17:10'!
 dropComplete
 	"Check to see if any cards can be auto-moved to piles.
@@ -6124,6 +6135,11 @@ deck
 	"Private -- Answer my deck"
 
 	^deck! !
+
+!Klondike methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:47'!
+defaultExtent
+
+	^ 740 @ 780.! !
 
 !Klondike methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:41'!
 discard
