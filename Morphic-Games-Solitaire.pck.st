@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2676] on 28 January 2016 at 2:01:00.136611 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2676] on 3 February 2016 at 5:04:13.992805 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 68!
+!provides: 'Morphic-Games-Solitaire' 1 69!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Cuis-Base' 42 2563 nil!
 !requires: 'Goodies' 1 3 nil!
@@ -5958,14 +5958,24 @@ descriptionForPartsBin
 		categories: #('Games' )
 		documentation: 'Another FreeCell solitaire card game'! !
 
+!FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:03'!
+fileReaderServicesForFile: fullName suffix: suffix
+	"FileList buttons that are serviced by us."
+
+	^suffix = 'fre'
+		ifTrue: [ {self serviceRestoreKlondike.} ]
+		ifFalse: [ #() ]! !
+
 !FreeCell class methodsFor: 'class initialization' stamp: 'KenD 10/25/2004 08:16'!
 includeInNewMorphMenu
 	^ true! !
 
-!FreeCell class methodsFor: 'class initialization' stamp: 'KenD 1/10/2013 14:07'!
+!FreeCell class methodsFor: 'class initialization' stamp: 'KenD 2/3/2016 17:01'!
 initialize
-	"self initialize"
-
+"
+	FreeCell initialize
+"
+	FileList registerFileReader: self.
 	NumColumns _ 8.
 	NumSpares   _ 4.
 	NumPiles       _ 4.
@@ -5979,6 +5989,32 @@ newGame
 	"
 	
 	^ self newColumn initialize openInWorld! !
+
+!FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:02'!
+restoreFromSaved: fullFileName
+
+	| aGame |
+	aGame := FreeCell newGame.
+	fullFileName asFileEntry readStream: [ :file | | aDataStream |
+			file binary.
+			aDataStream := DataStream on: file.
+		     aGame restoreGameFromDataStream: aDataStream.
+	].
+	^ aGame! !
+
+!FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:02'!
+serviceRestoreKlondike
+
+	^ (SimpleServiceEntry 
+		provider: self 
+		label: 'restore game'
+		selector: #restoreFromSaved:
+		description: 'restore FreeCell solitaire game') triggerFileListChanged! !
+
+!FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 16:35'!
+unload
+
+	FileList unregisterFileReader: self ! !
 
 !Klondike methodsFor: 'undo' stamp: 'KenD 3/28/2015 18:45'!
 addingCardOrCards: cardMorph toContainer: cardContainer
@@ -6545,14 +6581,26 @@ descriptionForPartsBin
 		categories: #('Games' )
 		documentation: 'Klondike Solitaire card game'! !
 
+!Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 16:48'!
+fileReaderServicesForFile: fullName suffix: suffix
+	"FileList buttons that are serviced by us."
+
+	^suffix = 'klo'
+		ifTrue: [ {self serviceRestoreKlondike.} ]
+		ifFalse: [ #() ]! !
+
 !Klondike class methodsFor: 'class initialization' stamp: 'KenD 11/19/2004 11:58'!
 includeInNewMorphMenu
 
 	^true! !
 
-!Klondike class methodsFor: 'class initialization' stamp: 'KenD 11/19/2004 12:02'!
+!Klondike class methodsFor: 'class initialization' stamp: 'KenD 2/3/2016 17:01'!
 initialize
+"
+	Klondike initialize.
+"
 
+	FileList registerFileReader: self.
 	NumColumns := 7.
 	NumPiles := 4.
 	^self! !
@@ -6565,6 +6613,32 @@ newGame
 	"
 	
 	^ self newColumn  initialize openInWorld! !
+
+!Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:00'!
+restoreFromSaved: fullFileName
+
+	| aGame |
+	aGame := Klondike newGame.
+	fullFileName asFileEntry readStream: [ :file | | aDataStream |
+			file binary.
+			aDataStream := DataStream on: file.
+		     aGame restoreGameFromDataStream: aDataStream.
+	].
+	^ aGame! !
+
+!Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 16:49'!
+serviceRestoreKlondike
+
+	^ (SimpleServiceEntry 
+		provider: self 
+		label: 'restore game'
+		selector: #restoreFromSaved:
+		description: 'restore Klondike solitaire game') triggerFileListChanged! !
+
+!Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 16:36'!
+unload
+
+	FileList unregisterFileReader: self ! !
 
 !Stack methodsFor: 'converting' stamp: 'KenD 11/24/2004 08:33'!
 asArray
