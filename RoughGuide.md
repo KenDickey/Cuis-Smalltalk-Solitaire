@@ -21,3 +21,5 @@ Cuis-Smalltalk-ColorSolitaire
 - Dynamic DropShadows: See CardMorph>>setDropShadowMorph
 
 - CardTableMorph class initializes games and causes table setup for Klindike, FreeCell, your-solitaire-game-here.
+
+- FreeCell and Klondike register with the FileList to restore saved game files.
