@@ -1,6 +1,6 @@
 Cuis-Solitaire
 ==========
-Tested with Cuis 4.2 rev 2676
+Tested with Cuis 4.2 rev 2696
 
 Solitaire:  Klondike & FreeCell Solitaire Games
 
@@ -16,3 +16,5 @@ Then execute
 ````
 
 Or use the World Menu to invoke:  New Morph > Games-Solitaire > FreeCell
+
+![Solitaire](Solitaire.png)
