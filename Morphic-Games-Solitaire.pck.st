@@ -1,9 +1,9 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 28 February 2016 at 7:26:35.652138 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 28 February 2016 at 7:36:19.526387 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 70!
+!provides: 'Morphic-Games-Solitaire' 1 71!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
-!requires: 'Cuis-Base' 42 2563 nil!
+!requires: 'Cuis-Base' 42 2696 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
