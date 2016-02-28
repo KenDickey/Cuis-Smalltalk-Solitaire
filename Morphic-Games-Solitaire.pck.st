@@ -1,9 +1,9 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2676] on 3 February 2016 at 5:04:13.992805 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 28 February 2016 at 7:26:35.652138 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 69!
+!provides: 'Morphic-Games-Solitaire' 1 70!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
-!requires: 'Cuis-Base' 42 2563 nil!
 !requires: 'Goodies' 1 3 nil!
+!requires: 'Cuis-Base' 42 2563 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -5298,7 +5298,7 @@ includeInNewMorphMenu
 initializedInstance
 	^self newColumn! !
 
-!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 7/4/2014 15:55'!
+!CardTableMorph class methodsFor: 'accessing' stamp: 'KenD 2/28/2016 07:15'!
 randomWinnerText
 	"Return some random winner text message"
 
@@ -5391,7 +5391,7 @@ randomWinnerText
 	seed := seed bitXor: (Time localMillisecondClock bitAnd: 16r3FFFFFFF).
 	seed = 0] whileTrue: ["Try again if ever get a seed = 0"].
 
-	^textArray at: ((Random new seed: seed) nextInt: (textArray size))! !
+	^textArray at: ((Random new seed: seed) nextInteger: (textArray size))! !
 
 !CardTableMorph class methodsFor: 'testing' stamp: 'KenD 3/11/2015 08:36'!
 slide: aMorph to: endPoint nSteps: numSteps delay: milliSecondsDelay next: nextAction
