@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 28 February 2016 at 7:36:19.526387 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 7 April 2016 at 6:46:13.014467 am'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 71!
+!provides: 'Morphic-Games-Solitaire' 1 73!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
 !requires: 'Cuis-Base' 42 2696 nil!
@@ -46,7 +46,7 @@ CardDeckMorph class
 
 !classDefinition: #CardDiscardMorph category: #'Morphic-Games-Solitaire'!
 CardContainerMorph subclass: #CardDiscardMorph
-	instanceVariableNames: 'cardStack numCardsToShow'
+	instanceVariableNames: 'cardStack numCardsToShow scale'
 	classVariableNames: 'PixelOverlap'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -86,7 +86,7 @@ EnableDisableButton class
 
 !classDefinition: #CardMorph category: #'Morphic-Games-Solitaire'!
 ImageMorph subclass: #CardMorph
-	instanceVariableNames: 'cardNumber grabPreowner'
+	instanceVariableNames: 'cardNumber grabPreowner isFaceDown'
 	classVariableNames: 'ColorNames DropShadowMorph FaceNames FormsArray SuitNames'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -96,7 +96,7 @@ CardMorph class
 
 !classDefinition: #ScaledCardMorph category: #'Morphic-Games-Solitaire'!
 CardMorph subclass: #ScaledCardMorph
-	instanceVariableNames: 'scale faceForm faceShowing'
+	instanceVariableNames: 'scale'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -106,7 +106,7 @@ ScaledCardMorph class
 
 !classDefinition: #CardTableMorph category: #'Morphic-Games-Solitaire'!
 LayoutMorph subclass: #CardTableMorph
-	instanceVariableNames: 'undoStack inCardMove goAgain inUndo undoButton saveGameButton winnerText labelLayout labelMorph mutex'
+	instanceVariableNames: 'undoStack inCardMove goAgain inUndo undoButton saveGameButton winnerText labelLayout labelMorph mutex scale'
 	classVariableNames: 'WinnerText'
 	poolDictionaries: ''
 	category: 'Morphic-Games-Solitaire'!
@@ -270,7 +270,7 @@ This is a 52 card deck (no jokers).
 !ScaledCardMorph commentStamp: '<historical>' prior: 0!
 A ScaledCardMorph is a resized/scaled CardMorph.!
 
-!CardTableMorph commentStamp: '<historical>' prior: 0!
+!CardTableMorph commentStamp: 'KenD 4/6/2016 15:26' prior: 0!
 My subclasses implement various Card Games.
 
 See child classes FreeCell and Klondike
@@ -285,6 +285,7 @@ Structure:
   labelLayout	Container of current label: lableMorph or winnerText
   undoButton     Button is sometimes disabled
   saveGameButton is sometimes disabled
+  scale           Scale relative to 1.  Uned to grow/shrink display.
 
 This class abstracts common actions of its subclasses.!
 
@@ -426,7 +427,7 @@ initialize
 	^self
 	! !
 
-!CardDeck methodsFor: 'initialization' stamp: 'KenD 11/17/2004 10:59'!
+!CardDeck methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:52'!
 initializeFromArray: stateArray
 	"Reconstiture a Card Deck."
 	"stateArray contains 52 card numbers, an index, a seed, and #CardDeck, which abstracts a deck's state"
@@ -442,17 +443,14 @@ initializeFromArray: stateArray
 			| cardNum |
 			cardNum := stateArray at: idx.
 			cards at: idx 
-					put: (CardMorph new withCardNumber: cardNum) ].
+					put: (CardMorph new withCardNumber: cardNum) ]. "@@FIXME: Scale"
 	^self
 ! !
 
-!CardDeck methodsFor: 'initialization' stamp: 'KenD 7/15/2011 16:36'!
+!CardDeck methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:51'!
 initializeWithScale: scale
 	"Create an unshuffled deck of Cards."
 
-	(scale = 1) 
-	ifTrue: [super initialize]
-	ifFalse: [
 	  super initialize.
 	  seed := Random new initialize next.
 	  index := 0.  "Index incremented gives next Card"
@@ -463,7 +461,6 @@ initializeWithScale: scale
 					put: (ScaledCardMorph the: (((idx - 1) // 4) + 1)    "1..13"
 												of: ((idx - 1 rem: 4) + 1)   "1..4"
 												scale: scale)].
-	].
 	^self
 	! !
 
@@ -502,6 +499,13 @@ seed: anInteger
 	ifFalse: [Error signal: 'seed must be an Integer' ]
 	ifTrue: [ seed := anInteger ].
 	^anInteger! !
+
+!CardDeck methodsFor: 'scaling' stamp: 'KenD 4/6/2016 21:17'!
+setScale: scale
+
+	1 to: cards size do: [ :idx |
+		cards at: idx put: (ScaledCardMorph fromCard: (cards at: idx) scale: scale)
+	].! !
 
 !CardDeck methodsFor: 'shuffle' stamp: 'KenD 1/24/2011 18:03'!
 shuffle
@@ -577,6 +581,12 @@ defaultLayout
 					 fixedHeight: (CardMorph height + 4) 
 					 minorDirectionPadding: #center! !
 
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:12'!
+defaultLayoutWithScale: scale
+	^LayoutSpec  fixedWidth:  (CardMorph width * scale + 4)
+					 fixedHeight: (CardMorph height * scale + 4) 
+					 minorDirectionPadding: #center! !
+
 !CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/29/2004 10:25'!
 dropComplete
 	"Someone dropped one or more cards into me.  Tell the Card Table about it."
@@ -593,7 +603,7 @@ dropEnabled
 
 	^true! !
 
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/22/2013 19:21'!
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
 initialize
 	"Set my typical properties; Assume displayed on a Green table."
 
@@ -601,9 +611,22 @@ initialize
 	self color: Color transparent;
 		borderColor: Color yellow;
 		borderWidth: 2; "pixels"
-		morphWidth: CardMorph morphWidth + 4;
+		morphWidth:  CardMorph morphWidth + 4;
 		morphHeight: CardMorph morphHeight + 4;
 		layoutSpec: self defaultLayout; "subclasses may mutate or replace"
+		yourself! !
+
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
+initializeWithScale: scale
+	"Set my typical properties; Assume displayed on a Green table."
+
+	super initialize.
+	self color: Color transparent;
+		borderColor: Color yellow;
+		borderWidth: 2; "pixels"
+		morphWidth:  CardMorph morphWidth * scale + 4;
+		morphHeight: CardMorph morphHeight * scale + 4;
+		layoutSpec: (self defaultLayoutWithScale: scale); "subclasses may mutate or replace"
 		yourself! !
 
 !CardContainerMorph methodsFor: 'testing' stamp: 'KenD 10/21/2004 14:24'!
@@ -746,6 +769,11 @@ addCards: aCardCollectionOrContainer
 initialize
 
 	super initialize! !
+
+!CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:14'!
+initializeWithScale: scale
+
+	super initializeWithScale: scale! !
 
 !CardColumnMorph methodsFor: 'testing' stamp: 'KenD 1/9/2013 21:05'!
 isEmpty
@@ -946,6 +974,16 @@ initializeFromCardCollection: aCollection
 	addCards: aCollection;
 	yourself! !
 
+!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:12'!
+initializeWithScale: scale
+	"Answer a new instance of me containing zero cards."
+
+	super initializeWithScale: scale.
+	cardStack := Stack new initialize.
+	topIsFaceDown := true. "default"
+	self showTopCard.
+	^self! !
+
 !CardDeckMorph methodsFor: 'testing' stamp: 'KenD 11/17/2004 11:50'!
 isEmpty
 	"I am empty if I contain zero Cards."
@@ -1110,10 +1148,21 @@ dropEnabled
 
 	^false! !
 
-!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 1/24/2011 17:55'!
+!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:30'!
 initialize
 
 	super initialize.
+	scale := 1.
+	cardStack := Stack new initialize.
+	self numCardsToShow: 1; "Show top card by default."
+		yourself
+! !
+
+!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:31'!
+initializeWithScale: aScale
+
+	super initializeWithScale: aScale.
+	scale := aScale.
 	cardStack := Stack new initialize.
 	self numCardsToShow: 1; "Show top card by default."
 		yourself
@@ -1158,15 +1207,15 @@ numCardsToShow
 
 	^numCardsToShow! !
 
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:23'!
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 4/6/2016 20:32'!
 numCardsToShow: anInteger
 
 	| newWidth |
 	numCardsToShow := anInteger.
-	newWidth := CardMorph width + ((anInteger - 1) * PixelOverlap) + 4.
+	newWidth := CardMorph width * scale + ((anInteger - 1) * PixelOverlap) + 4.
 	self morphWidth: newWidth;
 		 layoutSpec: (LayoutSpec fixedWidth: newWidth
-									 fixedHeight: (CardMorph height + 4) 
+									 fixedHeight: (CardMorph height * scale + 4) 
 									 minorDirectionPadding: #center).
 	self redrawNeeded.
 	self showTopCards;
@@ -1207,6 +1256,10 @@ saveStateToArray
 						 cardNumber)
 		].
 	^answerArray! !
+
+!CardDiscardMorph methodsFor: 'private' stamp: 'KenD 4/6/2016 20:30'!
+scale
+	^scale! !
 
 !CardDiscardMorph methodsFor: 'drawing' stamp: 'KenD 7/25/2014 19:09'!
 showTopCards
@@ -1564,13 +1617,13 @@ faceNumber
 
 	^((self cardNumber // 4) + 1)! !
 
-!CardMorph methodsFor: 'display' stamp: 'KenD 3/14/2015 21:00'!
+!CardMorph methodsFor: 'display' stamp: 'KenD 4/6/2016 16:11'!
 flip
 	"Turn the card over"
 
-	(self form == self backForm)
-	ifTrue: [ self image: (self faceForm) ]
-	ifFalse: [ self image: (self backForm) ]! !
+	(isFaceDown := isFaceDown not)
+	ifTrue:  [ self image: self backForm ]
+	ifFalse: [ self image: self faceForm ]! !
 
 !CardMorph methodsFor: 'access' stamp: 'KenD 1/15/2013 15:02'!
 forgetPreowner
@@ -1668,16 +1721,15 @@ isCardMorph
 	
 	^true! !
 
-!CardMorph methodsFor: 'testing' stamp: 'KenD 4/17/2013 20:30'!
+!CardMorph methodsFor: 'testing' stamp: 'KenD 4/6/2016 16:09'!
 isFaceDown
-	"NB: ImageMorph >>#image in Pharo is ImageMorph >>#form in Cuis"
 
-	^(self form == self backForm)! !
+	^isFaceDown! !
 
-!CardMorph methodsFor: 'testing' stamp: 'KenD 10/20/2004 08:49'!
+!CardMorph methodsFor: 'testing' stamp: 'KenD 4/6/2016 16:12'!
 isFaceUp
 
-	^(self isFaceDown not)! !
+	^ self isFaceDown not! !
 
 !CardMorph methodsFor: 'testing' stamp: 'KenD 10/28/2004 11:08'!
 isRed
@@ -1780,6 +1832,11 @@ saveImageToFile: aFileName
 
 	(self form) writePNGfileNamed: aFileName! !
 
+!CardMorph methodsFor: 'access' stamp: 'KenD 4/6/2016 14:58'!
+scale
+	"Not scalable -- see ScaledCardMorph"
+	^1! !
+
 !CardMorph methodsFor: 'dropShadow' stamp: 'KenD 8/12/2015 07:49'!
 setDropShadowMorph
 
@@ -1859,21 +1916,23 @@ width
 
 	^self faceForm width! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/22/2013 19:20'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 16:13'!
 withCardNumber: cardNum
 	"Private"
 	
 	super initialize.
+	isFaceDown := false.
 	cardNumber := cardNum.
 	grabPreowner := nil.
 	self image: (self faceForm);
 		yourself! !
 
-!CardMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 13:53'!
+!CardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 16:13'!
 withCardNumber: cardNum image: form
 	"Private"
 	
 	super initialize.
+	isFaceDown := false.
 	cardNumber := cardNum.
 	grabPreowner := nil.
 	self image: form;
@@ -4543,25 +4602,17 @@ width
 	"Answer the image width"
 	^(FormsArray at: 53) width! !
 
-!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 16:25'!
+!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 4/6/2016 16:02'!
 backForm
 	"form for this card's back side"
 
-	^(FormsArray at: 53) magnifyBy: scale "@@FIXME: share one instance"! !
+	^(FormsArray at: 53) magnifyBy: self scale! !
 
-!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 18:22'!
+!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 4/6/2016 15:57'!
 faceForm
 	"Answer my form"
 
-	^faceForm! !
-
-!ScaledCardMorph methodsFor: 'display' stamp: 'KenD 7/15/2011 18:27'!
-flip
-	"Turn the card over"
-
-	(faceShowing := faceShowing not)
-	ifTrue: [ self image: (self faceForm) ]
-	ifFalse: [ self image: (self backForm) ]! !
+	^super faceForm magnifyBy: self scale! !
 
 !ScaledCardMorph methodsFor: 'initialization' stamp: 'KenD 7/15/2011 16:28'!
 initialize
@@ -4569,46 +4620,37 @@ initialize
 	super initialize.
 	faceShowing := true! !
 
-!ScaledCardMorph methodsFor: 'testing' stamp: 'KenD 7/15/2011 17:40'!
-isFaceDown
-	
-	^faceShowing not! !
-
-!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 18:23'!
-myForm
-	^faceForm! !
-
-!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 18:23'!
-myForm: aForm
-
-	"Private"
-	faceForm := aForm! !
-
 !ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 16:15'!
 scale
 	 ^scale! !
 
-!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 7/15/2011 16:15'!
+!ScaledCardMorph methodsFor: 'access' stamp: 'KenD 4/6/2016 16:39'!
 scale: newScale
-	 scale := newScale! !
+	 scale := newScale.
+	 self image: (super form magnifyBy: newScale)! !
 
-!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 4/17/2013 20:32'!
+!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 10:35'!
+fromCard: unscaled scale: scale
+	"Answer a Scaled Card Morph"
+
+	| newInst |
+	newInst := self newFrom: unscaled.
+	newInst scale: scale.
+		
+	^newInst! !
+
+!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 4/5/2016 19:06'!
+the: num of: suit
+
+	^ self the: num of: suit scale: 1! !
+
+!ScaledCardMorph class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 10:36'!
 the: num of: suit scale: scale
 	"Scaled Card Morph"
-
-	| unscaled newInst  cardForm|
-	
-	unscaled := CardMorph the: num of: suit.
-	(scale = 1)
-	ifTrue: [^unscaled]
-	ifFalse: [
-		cardForm :=  (unscaled form magnifyBy: scale).
-		newInst := (super new) 
-				withCardNumber: (unscaled cardNumber)
-				image:cardForm;
-				scale: scale;
-				myForm: cardForm.
-		^newInst]! !
+"
+	(ScaledCardMorph the: #Jack of: #Spades scale: 2.3) openInWorld.
+"
+	^ self fromCard: (CardMorph the: num of: suit) scale: scale! !
 
 !CardTableMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:28'!
 aboutToBeGrabbedBy: aHand 
@@ -4721,6 +4763,11 @@ buildButton: aButton
 	 	^aButton
 ! !
 
+!CardTableMorph methodsFor: 'private' stamp: 'KenD 4/6/2016 19:22'!
+buttonAreaHeight
+
+	^ 30! !
+
 !CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:43'!
 defaultExtent
 
@@ -4801,12 +4848,11 @@ inUndo: inUndoBool
 	].
 	^inUndo := inUndoBool! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:43'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 18:55'!
 initialize
-	"Set up typical properties for subclasses."
 	super initialize.
 	undoStack := Stack new initialize.
-	mutex := Mutex new initialize.
+	mutex      := Mutex new initialize.
 	self beColumn; 
 		 separation: 10;
 		 inCardMove: false;
@@ -4814,7 +4860,14 @@ initialize
 		 inUndo: false;
 		 color: (Color r: 0.304 g: 0.833 b: 0.075);  "green felt"
 		 morphPositionInWorld: (30 @ 26); 
-		 morphExtent: self defaultExtent; "delegate to subclasses"
+		 yourself! !
+
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:53'!
+initializeWithScale: aScale
+	"Set up typical properties for subclasses."
+	scale := aScale.
+
+	self morphExtent: self defaultExtent; "delegate default to subclasses"
 		 "setBorderWidth: 2 borderColor: Color black;"
 		 yourself
 	"subclasses setup the layout"! !
@@ -4839,7 +4892,12 @@ isAutoMoveLegalFrom: aContainer to: aPile
 isCardTable
 	^true! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:36'!
+!CardTableMorph methodsFor: 'private' stamp: 'KenD 4/6/2016 19:22'!
+labelAreaHeight
+
+	^ 40! !
+
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:21'!
 makeButtonArea
 	"Make a new Button Area as a submorph"
 
@@ -4879,7 +4937,7 @@ makeButtonArea
 
 	self addMorph: buttonArea 
 		layoutSpec: (LayoutSpec proportionalWidth: 1.0
-									fixedHeight:30
+									fixedHeight:self buttonAreaHeight
 									minorDirectionPadding: #center)! !
 
 !CardTableMorph methodsFor: 'initialization' stamp: 'KenD 6/26/2011 16:35'!
@@ -4889,19 +4947,17 @@ makeHelpButton
 		 (EnableDisableButton 
 			model: self stateGetter: nil action: #help label: 'Help')! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 8/26/2013 19:59'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:22'!
 makeLabelArea: lableString
-	"Make a new Button Area as a submorph"
-
-	||
-
+	"Make a new Lable Area as a submorph"
+	
 	labelLayout := LayoutMorph newRow.
 	
 	labelMorph
 	 	:= (StringMorph contents: lableString) 
 			emphasis: 1;  "emphasis: bold=1"
-			font: (AbstractFont familyName: 'DejaVu' pointSize: 22).
-			
+			font: (AbstractFont familyName: 'DejaVu' pointSize: 22). 
+	"@@FIXME: scale"			
 	labelMorph  layoutSpec: (LayoutSpec  proportionalWidth: 0.9 fixedHeight: 30).
 	
 	labelLayout
@@ -4910,7 +4966,7 @@ makeLabelArea: lableString
 			morphHeight: 40;
 			morphWidth: 700; " (self morphWidth) - 4;"
 			padding: #center;
-			layoutSpec: (LayoutSpec  proportionalWidth: 0.9 fixedHeight: 40);
+			layoutSpec: (LayoutSpec  proportionalWidth: 0.9 fixedHeight: self labelAreaHeight);
 			addMorph: labelMorph.
 
 
@@ -5116,6 +5172,11 @@ saveGametoDataStream: aDataStream
 	"Delegate to subclass -- the Table that implements the game."
 
 	Error signal: 'Subclass must implement!!'! !
+
+!CardTableMorph methodsFor: 'accessing' stamp: 'KenD 4/6/2016 15:32'!
+scale
+
+	^scale! !
 
 !CardTableMorph methodsFor: 'actions' stamp: 'KenD 1/4/2016 13:51'!
 showWinnerText
@@ -5513,6 +5574,11 @@ column: columnMorph wantsDropOf: aCardOrColumnMorph
 			Error signal: '@@FIXME: implement for column drops!!'.
 			^ false]! !
 
+!FreeCell methodsFor: 'private' stamp: 'KenD 4/6/2016 19:18'!
+columnSeparation
+	"Pixel space between columns"
+	^10! !
+
 !FreeCell methodsFor: 'accessing' stamp: 'KenD 10/22/2004 18:51'!
 columns
 	"Private -- Answer my columns"
@@ -5555,10 +5621,16 @@ deck
 
 	^deck! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:46'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:20'!
 defaultExtent
 
-	^ 890 @ 780.! !
+	| cardWidth cardHeight tableExtent |
+	cardWidth  := CardMorph morphWidth * scale.
+	cardHeight := CardMorph morphHeight * scale.
+	"buttonArea height 50; labelArea height 40; pilesArea CardHeight+30" 
+	tableExtent := (cardWidth + self columnSeparation * 11)@(cardHeight * 6 + 120).
+
+	^ tableExtent.! !
 
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 3/11/2015 17:10'!
 dropComplete
@@ -5630,14 +5702,13 @@ helpText
 	The piles build up from the aces in the same suit.
 	 '! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/13/2013 14:47'!
-initialize
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 21:20'!
+initializeWithScale: aScale
 	"Setup my layout.  Across the top are 4 Spares and 4 Piles,
 	then a block of 8 Columns, then a Button area."
 
-	super initialize.
-
-	deck := CardDeck new. " initializeWithScale: 1. @@TEST@@"
+	super initializeWithScale: aScale.
+	deck := CardDeck new initializeWithScale: self scale.
 	self makeLabelArea: 'FreeCell';
 		 makePilesArea;
 		 makeColumnArea;
@@ -5651,19 +5722,19 @@ isMyCard: aCard
 
 	^self deck contains: aCard! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/10/2013 13:44'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:19'!
 makeColumnArea
 	"I make new Column Area as a submorph"
 
 	| columnArea columnHeight columnLayout spacerLayout noColor|
 	noColor := Color transparent.
-	columnHeight := 510. "pixels"
-	columnArea :=  LayoutMorph newRow separation: 10.  "a row of columns"
+	columnHeight := CardMorph morphHeight * self scale * 5. "pixels"
+	columnArea :=  LayoutMorph newRow separation: self columnSeparation.  "a row of columns"
 	columnArea padding: #center;
 			      color: noColor;
 				morphHeight: columnHeight;
 				morphWidth: (self morphWidth).
-	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 
+	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth * self scale + 4 
 									 fixedHeight: columnHeight
 									 minorDirectionPadding: #center.
 	
@@ -5691,7 +5762,7 @@ makeColumnArea
 	self addMorph: columnArea layoutSpec: LayoutSpec useAll
 ! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 1/9/2013 20:00'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:39'!
 makePilesArea
 	"answer a new Piles Area as a submorph"
 
@@ -5706,7 +5777,7 @@ makePilesArea
 	"Card Spares"
 	1 to: NumSpares 
 		do: [ :n |  | spare |
-			spare := CardSpareMorph new initialize; 
+			spare := CardSpareMorph new initializeWithScale: self scale; 
 						borderColor: Color brown;
 						setBalloonText: 'A Spare can hold 1 card'.
 			pilesArea addMorph: spare ].
@@ -5716,7 +5787,7 @@ makePilesArea
 	"Collection Piles"
 	1 to: NumPiles 
 		do: [ :n |  | pile |
-			pile := CardPileMorph new initialize;
+			pile := CardPileMorph new initializeWithScale: self scale;
 					setBalloonText: 'Build up a suit in order from the Ace.' .
 			pilesArea addMorph: pile ].
 	
@@ -5724,7 +5795,7 @@ makePilesArea
 	
 	self addMorph: pilesArea 
 		layoutSpec: (LayoutSpec  fixedWidth: self morphWidth
-									fixedHeight: CardMorph morphHeight + 30 
+									fixedHeight: CardMorph morphHeight * self scale+ 30 
 									minorDirectionPadding: #center)
 	! !
 
@@ -5850,7 +5921,7 @@ restoreGame
 
 	self restoreGame: 'fre' userMessage: 'Select a FreeCell Game File...'! !
 
-!FreeCell methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 00:34'!
+!FreeCell methodsFor: 'fileIn/out' stamp: 'KenD 4/6/2016 21:15'!
 restoreGameFromDataStream: aDataStream
 	"Given an open DataStream, read and restore game state."
 	
@@ -5863,6 +5934,7 @@ restoreGameFromDataStream: aDataStream
 	ifTrue: [
 		| columnInfo pileInfo spareInfo undoInfo |
 		deck := CardDeck new initializeFromArray: (stateArray at: 3).
+		deck setScale: self scale.
 		columnInfo := stateArray at: 5.
 		pileInfo     := stateArray at: 7.
 		spareInfo   := stateArray at: 9.
@@ -5929,6 +6001,28 @@ saveGameToDataStream: aDataStream
 	aDataStream nextPut: someData.
 ! !
 
+!FreeCell methodsFor: 'scaling' stamp: 'KenD 4/6/2016 15:21'!
+setScale: aScale
+	"Resize me based on new card size"
+	
+	| cardExtent cardWidth cardHeight columnLayout |
+	self newGame.  "cleanup to known state"
+	deck := CardDeck new initializeWithScale: aScale.
+	cardExtent := (deck cards at: 1) morphExtent.
+	cardWidth := cardExtent x.
+	cardHeight := cardExtent y.
+	"resize table"
+	self morphExtent: (cardWidth * 10) @ (cardHeight * 6 + 120).
+	"label area and button area unchanged"
+	columnLayout := LayoutSpec  
+									fixedWidth: cardWidth + 4 
+									fixedHeight: cardHeight * 5
+									minorDirectionPadding: #center.
+	
+	"@@FIXME -- unfinished"
+	
+	! !
+
 !FreeCell methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:11'!
 spare: spareMorph wantsDropOf: aCardOrColumnMorph 
 	"Answer true if Spare is empty and Card is singleton."
@@ -5950,13 +6044,6 @@ spares
 	"Private -- Answer my spares"
 
 	^spares! !
-
-!FreeCell class methodsFor: 'parts bin' stamp: 'KenD 10/28/2004 18:50'!
-descriptionForPartsBin
-	^ self
-		partName: 'FreeCell'
-		categories: #('Games' )
-		documentation: 'Another FreeCell solitaire card game'! !
 
 !FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:03'!
 fileReaderServicesForFile: fullName suffix: suffix
@@ -5981,14 +6068,31 @@ initialize
 	NumPiles       _ 4.
 	^self! !
 
-!FreeCell class methodsFor: 'instance creation' stamp: 'KenD 1/9/2013 19:47'!
+!FreeCell class methodsFor: 'instance creation' stamp: 'KenD 4/7/2016 06:45'!
+initializedInstance
+	"Answer a new instance"
+	"
+	FreeCell newGame.
+	"
+	
+	^ self newColumn initializeWithScale: 1! !
+
+!FreeCell class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 21:19'!
 newGame
 	"Answer a new instance"
 	"
 	FreeCell newGame.
 	"
 	
-	^ self newColumn initialize openInWorld! !
+	^ (self newColumn initializeWithScale: 1) openInWorld! !
+
+!FreeCell class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 21:19'!
+newGameWithScale: scale
+	"Answer a new instance"
+	"
+	FreeCell newGameWithScale: 0.8.
+	"
+	^ (self newColumn initializeWithScale: scale) openInWorld! !
 
 !FreeCell class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:02'!
 restoreFromSaved: fullFileName
@@ -6172,10 +6276,16 @@ deck
 
 	^deck! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/28/2016 13:47'!
+!Klondike methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:02'!
 defaultExtent
 
-	^ 740 @ 780.! !
+	| cardWidth cardHeight tableExtent |
+	cardWidth  := CardMorph morphWidth * scale.
+	cardHeight := CardMorph morphHeight * scale.
+	"buttonArea height 50; labelArea height 40; pilesArea CardHeight+30" 
+	tableExtent := (cardWidth * 9 )@(cardHeight * 6 + 120).
+
+	^ tableExtent.! !
 
 !Klondike methodsFor: 'accessing' stamp: 'KenD 11/18/2004 16:41'!
 discard
@@ -6245,8 +6355,8 @@ helpText
 	The piles build up from the Aces in the same suit.
 	 ' ! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/21/2011 22:03'!
-initialize
+!Klondike methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:06'!
+initializeWithScale: scale
 	"Setup my layout.  Down the column are 
 	Label, 
 	Deck, Discards and 4 Piles,
@@ -6254,7 +6364,8 @@ initialize
 	then a Button area."
 	|  |
 
-	super initialize.
+	super initializeWithScale: scale.
+	"deck created in makePilesArea"
 	self
 		makeLabelArea: 'Klondike';
 		makePilesArea;
@@ -6269,24 +6380,26 @@ isMyCard: aCard
 
 	^self cardDeck contains: aCard! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/10/2013 13:42'!
+!Klondike methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:02'!
 makeColumnArea
 	"I make new Column Area as a submorph"
 
 	| columnArea columnHeight columnLayout spacerLayout noColor|
 	noColor := Color transparent.
-	columnHeight := 510. "pixels"
+	columnHeight := CardMorph morphHeight * self scale * 5. "pixels"
 	columnArea := LayoutMorph newRow.  "a row of columns"
 	columnArea color: Color transparent;
 				morphHeight: columnHeight;
 				morphWidth: (self morphWidth).
-	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth + 4 
-									 fixedHeight: columnHeight
-									 minorDirectionPadding: #center.
+	columnLayout := LayoutSpec  
+							fixedWidth: CardMorph morphWidth * self scale + 4 
+							fixedHeight: columnHeight
+							minorDirectionPadding: #center.
 	
-	spacerLayout := LayoutSpec  proportionalWidth: 0.2 
-									 fixedHeight: columnHeight
-									 minorDirectionPadding: #center.
+	spacerLayout := LayoutSpec  
+							proportionalWidth: 0.2 
+							fixedHeight: columnHeight
+							minorDirectionPadding: #center.
 									
 	columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)
 				layoutSpec: spacerLayout.
@@ -6307,7 +6420,7 @@ makeColumnArea
 
 	self addMorph: columnArea layoutSpec: LayoutSpec useAll! !
 
-!Klondike methodsFor: 'initialization' stamp: 'KenD 1/13/2013 14:47'!
+!Klondike methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:41'!
 makePilesArea
 	"answer a new Piles Area as a submorph"
 
@@ -6318,39 +6431,46 @@ makePilesArea
 	pilesArea color: noColor.
 	
 	"spacer"
-	pilesArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor; morphWidth: 40)
-			  layoutSpec: (LayoutSpec  fixedWidth: 40
-									 fixedHeight: (CardMorph morphHeight + 4)).
+	pilesArea addMorph: (BorderedRectMorph 
+								new color: noColor; 
+								borderColor: noColor; 
+								morphWidth: 40 * self scale)
+			  layoutSpec: (LayoutSpec  
+								proportionalWidth: 0.2
+								fixedHeight: (CardMorph morphHeight * self scale + 4)).
 
 	"deck"
-	deck := CardDeckMorph new initialize;
+	deck := CardDeckMorph new 
+					initializeWithScale: self scale;
 					setBalloonText: 'Tap top card to discard 3 or redeal.'.
-	cardDeck := CardDeck new. " initializeWithScale:1. @@@TEST@@"
+	cardDeck := CardDeck new initializeWithScale: self scale.
 	deck addCards: cardDeck.
 	pilesArea addMorph: deck.
 	
 	"discards pile"
-	discards := CardDiscardMorph new initialize;
+	discards := CardDiscardMorph new 
+					initializeWithScale: self scale;
 					numCardsToShow: 3;
 					setBalloonText: 'Play top Discard.'.
 	pilesArea addMorph: discards.
 	
 	"spacer"
 	pilesArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor; morphWidth: 20)
-			  layoutSpec: (LayoutSpec  fixedWidth: 20
-									 fixedHeight: (CardMorph morphHeight + 4)).
+			  layoutSpec: (LayoutSpec  
+									proportionalWidth: 0.2
+									fixedHeight: (CardMorph morphHeight * scale + 4)).
 			
 	"trarget piles"
 	1 to: NumPiles do: [ :n | 
 		| pile |
-		pile := CardPileMorph new initialize;
+		pile := CardPileMorph new initializeWithScale: self scale;
 					setBalloonText: 'Build up a suit in order from the Ace.'.
 		pilesArea addMorph: pile ].
 	piles := (pilesArea submorphs select: [:thing | thing isKindOf: CardPileMorph]) reversed.
 	
 	self addMorph: pilesArea 
-		layoutSpec: (LayoutSpec fixedWidth: self morphWidth
-									fixedHeight: CardMorph morphHeight + 30 
+		layoutSpec: (LayoutSpec proportionalWidth: 1.0
+									fixedHeight: CardMorph morphHeight * scale + 30 
 									minorDirectionPadding: #center).! !
 
 !Klondike methodsFor: 'auto-move' stamp: 'KenD 11/22/2004 10:10'!
@@ -6470,7 +6590,7 @@ restoreGame
 
 	self restoreGame: 'klo' userMessage: 'Select a Klondike Game File...'! !
 
-!Klondike methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 00:34'!
+!Klondike methodsFor: 'fileIn/out' stamp: 'KenD 4/6/2016 21:18'!
 restoreGameFromDataStream: aDataStream
 	"Given an open DataStream, read and restore game state."
 	
@@ -6483,6 +6603,7 @@ restoreGameFromDataStream: aDataStream
 	ifTrue: [
 		| columnInfo pileInfo deckInfo discardInfo undoInfo |
 		cardDeck := CardDeck new initializeFromArray: (stateArray at: 3).
+		cardDeck setScale: self scale.
 		columnInfo := stateArray at: 5.
 		pileInfo     := stateArray at: 7.
 		deckInfo    := stateArray at: 9.
@@ -6574,13 +6695,6 @@ saveGameToDataStream: aDataStream
 							nil. "FIXME"
 						}! !
 
-!Klondike class methodsFor: 'parts bin' stamp: 'KenD 11/19/2004 11:28'!
-descriptionForPartsBin
-	^ self
-		partName: 'Klondike'
-		categories: #('Games' )
-		documentation: 'Klondike Solitaire card game'! !
-
 !Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 16:48'!
 fileReaderServicesForFile: fullName suffix: suffix
 	"FileList buttons that are serviced by us."
@@ -6594,7 +6708,7 @@ includeInNewMorphMenu
 
 	^true! !
 
-!Klondike class methodsFor: 'class initialization' stamp: 'KenD 2/3/2016 17:01'!
+!Klondike class methodsFor: 'class initialization' stamp: 'KenD 4/6/2016 20:51'!
 initialize
 "
 	Klondike initialize.
@@ -6605,14 +6719,41 @@ initialize
 	NumPiles := 4.
 	^self! !
 
-!Klondike class methodsFor: 'instance creation' stamp: 'KenD 1/9/2013 19:35'!
+!Klondike class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 20:49'!
+initializedImage
+	"Answer a new instance"
+	"
+	Klondike initializedImage.
+	"
+	
+	^ (self newColumn initializeWithScale: 1) openInHand! !
+
+!Klondike class methodsFor: 'instance creation' stamp: 'KenD 4/7/2016 06:45'!
+initializedInstance
+	"Answer a new instance"
+	"
+	Klondike initializedImage.
+	"
+	
+	^ self newColumn initializeWithScale: 1! !
+
+!Klondike class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 19:51'!
 newGame
 	"Answer a new instance"
 	"
 	Klondike newGame.
 	"
 	
-	^ self newColumn  initialize openInWorld! !
+	^ (self newColumn initializeWithScale: 1) openInWorld! !
+
+!Klondike class methodsFor: 'instance creation' stamp: 'KenD 4/6/2016 19:51'!
+newGameWithScale: scale
+	"Answer a new instance"
+	"
+	Klondike newGameWithScale: 0.8.
+	"
+	
+	^ (self newColumn initializeWithScale: scale) openInWorld! !
 
 !Klondike class methodsFor: 'file reader registration' stamp: 'KenD 2/3/2016 17:00'!
 restoreFromSaved: fullFileName
