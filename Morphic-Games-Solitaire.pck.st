@@ -1,9 +1,9 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2696] on 7 April 2016 at 6:46:13.014467 am'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2717] on 7 April 2016 at 1:07:11.423124 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 73!
+!provides: 'Morphic-Games-Solitaire' 1 74!
+!requires: 'Cuis-Base' 42 2696 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
-!requires: 'Cuis-Base' 42 2696 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -5621,14 +5621,14 @@ deck
 
 	^deck! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:20'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/7/2016 12:53'!
 defaultExtent
 
 	| cardWidth cardHeight tableExtent |
 	cardWidth  := CardMorph morphWidth * scale.
 	cardHeight := CardMorph morphHeight * scale.
 	"buttonArea height 50; labelArea height 40; pilesArea CardHeight+30" 
-	tableExtent := (cardWidth + self columnSeparation * 11)@(cardHeight * 6 + 120).
+	tableExtent := (cardWidth + self columnSeparation * 10)@(cardHeight * 6 + 120).
 
 	^ tableExtent.! !
 
@@ -5722,25 +5722,28 @@ isMyCard: aCard
 
 	^self deck contains: aCard! !
 
-!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:19'!
+!FreeCell methodsFor: 'initialization' stamp: 'KenD 4/7/2016 13:03'!
 makeColumnArea
 	"I make new Column Area as a submorph"
 
 	| columnArea columnHeight columnLayout spacerLayout noColor|
 	noColor := Color transparent.
 	columnHeight := CardMorph morphHeight * self scale * 5. "pixels"
-	columnArea :=  LayoutMorph newRow separation: self columnSeparation.  "a row of columns"
-	columnArea padding: #center;
-			      color: noColor;
+	columnArea := LayoutMorph newRow.  "a row of columns"
+	columnArea 
+				padding: #center;
+				color: noColor;
 				morphHeight: columnHeight;
 				morphWidth: (self morphWidth).
-	columnLayout := LayoutSpec  fixedWidth: CardMorph morphWidth * self scale + 4 
-									 fixedHeight: columnHeight
-									 minorDirectionPadding: #center.
+	columnLayout := LayoutSpec  
+							fixedWidth: CardMorph morphWidth * self scale + 4 
+							fixedHeight: columnHeight
+							minorDirectionPadding: #center.
 	
-	spacerLayout := LayoutSpec  proportionalWidth: 0.2
-									fixedHeight: columnHeight
-									minorDirectionPadding: #center.
+	spacerLayout := LayoutSpec  
+							proportionalWidth: 0.6
+							fixedHeight: columnHeight
+							minorDirectionPadding: #center.
 									
 	columnArea addMorph: (BorderedRectMorph new color: noColor; borderColor: noColor)
 				layoutSpec: spacerLayout.
@@ -5749,12 +5752,14 @@ makeColumnArea
 		do: [ :n |
 			| colMorph |
 			colMorph := CardColumnMorph new initialize. 
-			colMorph morphHeight: columnHeight;
-					  borderColor: noColor;
-					  layoutSpec: columnLayout.
-			columnArea addMorph: colMorph.
-			columnArea  addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor) 
-						 layoutSpec:  spacerLayout.
+			colMorph 
+					morphHeight: columnHeight;
+					borderColor: noColor;
+					layoutSpec: columnLayout.
+			columnArea 
+				addMorph: colMorph;
+				addMorph: (BorderedRectMorph new color: noColor;  borderColor: noColor) 
+					layoutSpec:  spacerLayout.
 			].
 	columns := (columnArea submorphs 
 					select: [ :whatever | whatever isKindOf: CardContainerMorph ]) reversed..
