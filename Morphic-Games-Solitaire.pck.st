@@ -1,6 +1,6 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2717] on 7 April 2016 at 1:07:11.423124 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2717] on 11 April 2016 at 2:43:25.139063 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 74!
+!provides: 'Morphic-Games-Solitaire' 1 75!
 !requires: 'Cuis-Base' 42 2696 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
@@ -1175,7 +1175,7 @@ isEmpty
 	^cardStack isEmpty & 
 	(self submorphs isNil | self submorphs size = 0)! !
 
-!CardDiscardMorph methodsFor: 'layout' stamp: 'KenD 1/10/2013 19:10'!
+!CardDiscardMorph methodsFor: 'layout' stamp: 'KenD 4/11/2016 14:30'!
 layoutSubmorphsHorizontallyIn: layoutBounds
 	"Compute a new layout of submorphs based on the given layout bounds." 
 		"The Cards are overlapped by PixelsPerOverlap"
@@ -1186,7 +1186,7 @@ layoutSubmorphsHorizontallyIn: layoutBounds
 
 	(self submorphs reversed) do:
 		[ :m | m morphPosition: (cardOffset @ 2).
-			   cardOffset := cardOffset + PixelOverlap + 2 ].
+			   cardOffset := cardOffset +(PixelOverlap * scale) + 2 ].
 ! !
 
 !CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:13'!
@@ -1207,12 +1207,12 @@ numCardsToShow
 
 	^numCardsToShow! !
 
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 4/6/2016 20:32'!
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 4/11/2016 14:32'!
 numCardsToShow: anInteger
 
 	| newWidth |
 	numCardsToShow := anInteger.
-	newWidth := CardMorph width * scale + ((anInteger - 1) * PixelOverlap) + 4.
+	newWidth := CardMorph width * scale + ((anInteger - 1) * (scale * PixelOverlap)) + 4.
 	self morphWidth: newWidth;
 		 layoutSpec: (LayoutSpec fixedWidth: newWidth
 									 fixedHeight: (CardMorph height * scale + 4) 
