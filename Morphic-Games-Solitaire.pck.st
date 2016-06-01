@@ -1,6 +1,6 @@
 'From Cuis 4.2 of 25 July 2013 [latest update: #2717] on 11 April 2016 at 2:43:25.139063 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 75!
+!provides: 'Morphic-Games-Solitaire' 1 76!
 !requires: 'Cuis-Base' 42 2696 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
@@ -5104,7 +5104,7 @@ restoreGame: dotSuffixString userMessage: aPromptString
 	ifTrue: [ ^nil ]
 	ifFalse: [ |  filePath |
 		filePath := (dialogResult directory // dialogResult name) pathName.
-		filePath asFileEntry readStream: [ :file | | aDataStream |
+		filePath asFileEntry readStreamDo: [ :file | | aDataStream |
 			file binary.
 			aDataStream := DataStream on: file.
 		     self restoreGameFromDataStream: aDataStream.
@@ -5160,7 +5160,7 @@ saveGame: dotSuffix userMessage: aPromptString
 	ifFalse: [ | filePath |
 		filePath := (dialogResult directory // dialogResult name) pathName.
 		filePath := self ensureFileName: filePath hasSuffix:  '.', dotSuffix.
-		filePath asFileEntry writeStream: [ :file | | aDataStream |
+		filePath asFileEntry writeStreamDo: [ :file | | aDataStream |
 			aDataStream := DataStream on: file. 
 			self saveGameToDataStream: aDataStream.
 			aDataStream close
@@ -6104,7 +6104,7 @@ restoreFromSaved: fullFileName
 
 	| aGame |
 	aGame := FreeCell newGame.
-	fullFileName asFileEntry readStream: [ :file | | aDataStream |
+	fullFileName asFileEntry readStreamDo: [ :file | | aDataStream |
 			file binary.
 			aDataStream := DataStream on: file.
 		     aGame restoreGameFromDataStream: aDataStream.
@@ -6765,7 +6765,7 @@ restoreFromSaved: fullFileName
 
 	| aGame |
 	aGame := Klondike newGame.
-	fullFileName asFileEntry readStream: [ :file | | aDataStream |
+	fullFileName asFileEntry readStreamDo: [ :file | | aDataStream |
 			file binary.
 			aDataStream := DataStream on: file.
 		     aGame restoreGameFromDataStream: aDataStream.
