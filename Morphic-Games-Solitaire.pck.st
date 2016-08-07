@@ -1,9 +1,9 @@
-'From Cuis 4.2 of 25 July 2013 [latest update: #2717] on 11 April 2016 at 2:43:25.139063 pm'!
+'From Cuis 4.2 of 25 July 2013 [latest update: #2846] on 7 August 2016 at 12:46:06 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 76!
-!requires: 'Cuis-Base' 42 2696 nil!
+!provides: 'Morphic-Games-Solitaire' 1 78!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
+!requires: 'Cuis-Base' 42 2846 nil!
 !classDefinition: #CardDeck category: #'Morphic-Games-Solitaire'!
 Object subclass: #CardDeck
 	instanceVariableNames: 'cards index seed'
@@ -4897,7 +4897,7 @@ labelAreaHeight
 
 	^ 40! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:21'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 8/7/2016 12:37:51'!
 makeButtonArea
 	"Make a new Button Area as a submorph"
 
@@ -4936,9 +4936,9 @@ makeButtonArea
 	self undoButton disable.
 
 	self addMorph: buttonArea 
-		layoutSpec: (LayoutSpec proportionalWidth: 1.0
-									fixedHeight:self buttonAreaHeight
-									minorDirectionPadding: #center)! !
+		layoutSpec: (LayoutSpec proportionalWidth: 1.0  
+										proportionalHeight: 0.1
+										minorDirectionPadding: #center)! !
 
 !CardTableMorph methodsFor: 'initialization' stamp: 'KenD 6/26/2011 16:35'!
 makeHelpButton
@@ -5027,7 +5027,7 @@ mutex
 
 	^mutex! !
 
-!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 3/15/2015 16:08'!
+!CardTableMorph methodsFor: 'auto-move' stamp: 'KenD 8/7/2016 12:39:21'!
 numberOfMoveSteps
 
 	^ 40! !
