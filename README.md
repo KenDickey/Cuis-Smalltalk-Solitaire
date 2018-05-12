@@ -1,6 +1,6 @@
 Cuis-Solitaire
 ==========
-Tested with Cuis 4.2 rev 2972
+Tested with Cuis 4.2 rev 3319
 
 Solitaire:  Klondike & FreeCell Solitaire Games
 
