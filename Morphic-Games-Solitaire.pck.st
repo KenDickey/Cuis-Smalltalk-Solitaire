@@ -1,11 +1,31 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #3329] on 18 May 2018 at 1:12:28 pm'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #3333] on 25 May 2018 at 8:04:05 pm'!
 'Description Solitaire Card Games'!
-!provides: 'Morphic-Games-Solitaire' 1 79!
+!provides: 'Morphic-Games-Solitaire' 1 80!
+!requires: 'Cuis-Base' 42 2846 nil!
 !requires: 'Graphics-Files-Additional' 1 nil nil!
 !requires: 'Goodies' 1 3 nil!
-!requires: 'Cuis-Base' 42 2846 nil!
 SystemOrganization addCategory: #'Morphic-Games-Solitaire'!
 
+
+!classDefinition: #CardMorph category: #'Morphic-Games-Solitaire'!
+ImageMorph subclass: #CardMorph
+	instanceVariableNames: 'cardNumber grabPreowner isFaceDown'
+	classVariableNames: 'ColorNames DropShadowMorph FaceNames FormsArray SuitNames'
+	poolDictionaries: ''
+	category: 'Morphic-Games-Solitaire'!
+!classDefinition: 'CardMorph class' category: #'Morphic-Games-Solitaire'!
+CardMorph class
+	instanceVariableNames: ''!
+
+!classDefinition: #ScaledCardMorph category: #'Morphic-Games-Solitaire'!
+CardMorph subclass: #ScaledCardMorph
+	instanceVariableNames: 'scale'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Morphic-Games-Solitaire'!
+!classDefinition: 'ScaledCardMorph class' category: #'Morphic-Games-Solitaire'!
+ScaledCardMorph class
+	instanceVariableNames: ''!
 
 !classDefinition: #EnableDisableButton category: #'Morphic-Games-Solitaire'!
 PluggableButtonMorph subclass: #EnableDisableButton
@@ -77,26 +97,6 @@ CardContainerMorph subclass: #CardSpareMorph
 CardSpareMorph class
 	instanceVariableNames: ''!
 
-!classDefinition: #CardMorph category: #'Morphic-Games-Solitaire'!
-ImageMorph subclass: #CardMorph
-	instanceVariableNames: 'cardNumber grabPreowner isFaceDown'
-	classVariableNames: 'ColorNames DropShadowMorph FaceNames FormsArray SuitNames'
-	poolDictionaries: ''
-	category: 'Morphic-Games-Solitaire'!
-!classDefinition: 'CardMorph class' category: #'Morphic-Games-Solitaire'!
-CardMorph class
-	instanceVariableNames: ''!
-
-!classDefinition: #ScaledCardMorph category: #'Morphic-Games-Solitaire'!
-CardMorph subclass: #ScaledCardMorph
-	instanceVariableNames: 'scale'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Morphic-Games-Solitaire'!
-!classDefinition: 'ScaledCardMorph class' category: #'Morphic-Games-Solitaire'!
-ScaledCardMorph class
-	instanceVariableNames: ''!
-
 !classDefinition: #CardTableMorph category: #'Morphic-Games-Solitaire'!
 LayoutMorph subclass: #CardTableMorph
 	instanceVariableNames: 'undoStack inCardMove goAgain inUndo undoButton saveGameButton winnerText labelLayout labelMorph mutex scale'
@@ -157,6 +157,36 @@ Object subclass: #Stack
 Stack class
 	instanceVariableNames: ''!
 
+
+!CardMorph commentStamp: '<historical>' prior: 0!
+CardMorph is an alternate implementation of a PlayingCardMorph.
+
+CardMorph the: #Ace of: #Clubs.
+CardMorph the: 3 of: #Hearts.
+
+IVARS:
+ cardNumber: 1..52
+  grabPreowner: When grabbed from CardContainer, goes back here on drop rejection
+
+
+Structure:
+ SuitNames		Array of Symbol -- #(Clubs Diamonds Hearts Spades)
+ ColorNames		Array of Symbol -- #(Red Black)
+ FaceNames		Array of Symbol -- #(Ace Two Three ... Ten Jack Queen King)
+ FormsArray	Array of Form -- 52 card images + back image
+
+There is a total ordering on cards
+	A A A  A 2 2 2 2 3 3   3  3   4   4
+	C D H S C D H S C D  H  S   C   D ...
+	0 1  2 3 4 5 6  7 8 9 10 11 12 13 ..
+
+The Form for the Three of Hearts is in FormsArray: at 11 (its cardNumber + 1).
+See faceNumber and suitNumber instance methods for the math.
+This is a 52 card deck (no jokers).
+!
+
+!ScaledCardMorph commentStamp: '<historical>' prior: 0!
+A ScaledCardMorph is a resized/scaled CardMorph.!
 
 !EnableDisableButton commentStamp: '<historical>' prior: 0!
 An EnableDisableButtonMorph is a PluggableButtonMorph but can be disabled.
@@ -227,36 +257,6 @@ I contain zero or one cards.
 aSpare add: aCardMorph.
 
 When a Card is dropped on me, I ask my CardTable if it is a legal move.!
-
-!CardMorph commentStamp: '<historical>' prior: 0!
-CardMorph is an alternate implementation of a PlayingCardMorph.
-
-CardMorph the: #Ace of: #Clubs.
-CardMorph the: 3 of: #Hearts.
-
-IVARS:
- cardNumber: 1..52
-  grabPreowner: When grabbed from CardContainer, goes back here on drop rejection
-
-
-Structure:
- SuitNames		Array of Symbol -- #(Clubs Diamonds Hearts Spades)
- ColorNames		Array of Symbol -- #(Red Black)
- FaceNames		Array of Symbol -- #(Ace Two Three ... Ten Jack Queen King)
- FormsArray	Array of Form -- 52 card images + back image
-
-There is a total ordering on cards
-	A A A  A 2 2 2 2 3 3   3  3   4   4
-	C D H S C D H S C D  H  S   C   D ...
-	0 1  2 3 4 5 6  7 8 9 10 11 12 13 ..
-
-The Form for the Three of Hearts is in FormsArray: at 11 (its cardNumber + 1).
-See faceNumber and suitNumber instance methods for the math.
-This is a 52 card deck (no jokers).
-!
-
-!ScaledCardMorph commentStamp: '<historical>' prior: 0!
-A ScaledCardMorph is a resized/scaled CardMorph.!
 
 !CardTableMorph commentStamp: 'KenD 4/6/2016 15:26' prior: 0!
 My subclasses implement various Card Games.
@@ -371,921 +371,6 @@ Structure:
 
 valuesArray grows by doubling; no shrinkage at present.
 Initial purpose in life is to support SmallScheme dynamic variables.!
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:51'!
-disable
-	"setter for disabled"
-	
-	disabled := true.
-	self color: (self origColor darker darker darker).
-	self redrawNeeded.
-	^self! !
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 11/6/2004 18:29'!
-disabled
-	^disabled! !
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/9/2013 20:29'!
-enable
-	"setter for disabled"
-
-	disabled := false.
-	self color: origColor.
-	self redrawNeeded.
-	^self! !
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 11/6/2004 19:07'!
-labelStringMorph
-
-	self allMorphsDo: [:m | (m isKindOf: StringMorph) ifTrue: [^m]].
-	^ nil! !
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
-origColor
-	
-	^origColor! !
-
-!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
-origColor: aColor
-	
-	origColor := aColor! !
-
-!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 14:06'!
-handlesMouseDown: evt
-	"False if not enabled"
-	
-	self isDisabled
-	ifTrue: [ ^false ]
-	ifFalse: [ ^super handlesMouseDown: evt ]! !
-
-!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 13:47'!
-mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition
-
-	self isEnabled "guard condition"
-	ifTrue: [ super mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition ]
-! !
-
-!EnableDisableButton methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:40'!
-initialize
-	"Start out enabled"
-
-	super initialize.
-	disabled := false.
-	self color: (Theme current buttonColorFrom: 
-					(Theme current defaultWindowColor)).
-	self origColor: self color.
-	^self! !
-
-!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
-isDisabled
-	^self disabled! !
-
-!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
-isEnabled
-	^self disabled not! !
-
-!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 4/17/2013 20:58'!
-isLocked
-     ^self isDisabled! !
-
-!EnableDisableButton class methodsFor: 'as yet unclassified' stamp: 'KenD 6/23/2011 22:03'!
-includeInNewMorphMenu
-	^ false! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:02'!
-acceptDroppingMorph: aMorph event: evt 
-	"aMorph is a Card which may contain submorphs which 
-	are also Cards.  Add to me."
-
-	| table |
-	table := self targetTable.
-"Transcript show: table asString; show: ' Drop of ',  (aMorph face asString), ' of ', (aMorph suit asString); newLine."
-	aMorph hideDropShadow.
-	self addCard: aMorph.
-	aMorph submorphs reverseDo: [:aCard | self addCard: aCard].
-	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ]
-! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:14'!
-allowsMorphDrop
-	"Answer whether we accept dropping morphs. By default answer false."
-
-	^ true! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:15'!
-allowsSubmorphDrag
-	"Answer whether our morphs can just be grabbed with the hand, instead of requiring the use of the halo. By default answer false."
-
-	^ true! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/29/2004 10:25'!
-dropComplete
-	"Someone dropped one or more cards into me.  Tell the Card Table about it."
-
-	| table |
-	table := self targetTable.
-	table isNil
-		ifTrue: [^ false]
-		ifFalse: [^ table dropComplete]! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/30/2015 20:17'!
-okToPickUp: aCard
-	"Answer false unless I have a table, else ask the table."
-
-	| table result feedback |
-	table := self targetTable.
-	table isNil
-		ifTrue: [ result :=  false ]
-		ifFalse: [ result := (table pickLegalFor: aCard) ].
-"
-	Transcript newLine; show: (self name , ' got #okToPickUp:  answered ' , result printString ).  
-"
-	result ifFalse: [
-		feedback := HoverHelpMorph contents: 'illegal move'.
-		feedback popUpForHand: (feedback world activeHand) 
-	].
-	^ result! !
-
-!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/25/2004 16:14'!
-wantsDroppedMorph: aMorph event: evt 
-	"Answer false unless I have a table, else ask the table."
-	| table |
-	table := self targetTable.
-	table isNil
-		ifTrue: [^ false]
-		ifFalse: [^ table container: self wantsDropOf: aMorph]! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
-addCard: aCard
-	"Add a Card to me"
-
-	"I assume checking for legality of drop has already been done"
-	self addMorph: aCard.
-	aCard morphPosition: 0 @ 0.
-	self
-
-! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 3/1/2015 17:08'!
-containerOffset
-	"Offset from my morphPosition to that of contained card"
-
-	^ContainerOffset! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 18:54'!
-dropEnabled
-	"I assume cards are to be dropped on me -- subclasses my override"
-
-	^true! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:11'!
-makeEmpty
-
-	(self hasSubmorphs)
-		ifTrue: [ self removeAllMorphs ].! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/24/2004 15:03'!
-numCards
-	"Answer the number of AltCardMorphs I contain."
-	^ self submorphCount! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:23'!
-targetTable
-	"Answer my containing table or nil.
-	 Cache my containing Table as required."
-	targetTable isNil
-		ifTrue: [self setTargetTable].
-	^ targetTable! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/21/2004 17:50'!
-targetTable: anCardTable
-
-	targetTable := anCardTable! !
-
-!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:11'!
-topCard
-	"Answer my top Card or nil."
-
-	| cards |
-	cards := self submorphs.
-	(cards size = 0)
-	ifTrue: [ ^nil ]
-	ifFalse: [ ^cards at: 1 ]! !
-
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
-defaultLayout
-	^LayoutSpec  fixedWidth: (CardMorph width + 4)
-					 fixedHeight: (CardMorph height + 4) 
-					 minorDirectionPadding: #center! !
-
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:12'!
-defaultLayoutWithScale: scale
-	^LayoutSpec  fixedWidth:  (CardMorph width * scale + 4)
-					 fixedHeight: (CardMorph height * scale + 4) 
-					 minorDirectionPadding: #center! !
-
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
-initialize
-	"Set my typical properties; Assume displayed on a Green table."
-
-	super initialize.
-	self color: Color transparent;
-		borderColor: Color yellow;
-		borderWidth: 2; "pixels"
-		morphWidth:  CardMorph morphWidth + 4;
-		morphHeight: CardMorph morphHeight + 4;
-		layoutSpec: self defaultLayout; "subclasses may mutate or replace"
-		yourself! !
-
-!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
-initializeWithScale: scale
-	"Set my typical properties; Assume displayed on a Green table."
-
-	super initialize.
-	self color: Color transparent;
-		borderColor: Color yellow;
-		borderWidth: 2; "pixels"
-		morphWidth:  CardMorph morphWidth * scale + 4;
-		morphHeight: CardMorph morphHeight * scale + 4;
-		layoutSpec: (self defaultLayoutWithScale: scale); "subclasses may mutate or replace"
-		yourself! !
-
-!CardContainerMorph methodsFor: 'testing' stamp: 'KenD 10/21/2004 14:24'!
-isCardContainer
-	
-	^true! !
-
-!CardContainerMorph methodsFor: 'testing' stamp: 'KenD 1/21/2011 22:11'!
-isEmpty
-	"I am empty if I contain 0 Cards"
-	^ (self hasSubmorphs not)! !
-
-!CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:14'!
-restoreFromArray: stateArray givenDeck: aDeck
-	"Reconstiture a Card Container given a aDeck and a stateArray which contains card numbers."
-
-	self makeEmpty.
-	stateArray reverseDo: [ :cardNumber | self addCard: (aDeck cardFromNumber: cardNumber) ].
-	^self
-	! !
-
-!CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 10:45'!
-saveStateToArray
-	"Answer an array containing Card Numbers of Cards I contain"
-
-	^self submorphs collect: [ :aCard | aCard cardNumber ]! !
-
-!CardContainerMorph methodsFor: 'private' stamp: 'KenD 1/10/2013 13:51'!
-setTargetTable
-	"Follow the owner chain to an CardTable and set the targetTable to it."
-	| myOwner stillLooking |
-	myOwner := self owner.
-	stillLooking := myOwner isNil not & (myOwner isKindOf: CardTableMorph) not.
-	[stillLooking]
-		whileTrue: [myOwner := myOwner owner.
-			stillLooking := myOwner isNil not 
-						& (myOwner isKindOf: CardTableMorph) not].
-	(myOwner isKindOf: CardTableMorph)
-		ifTrue: [self targetTable: myOwner]! !
-
-!CardContainerMorph class methodsFor: 'new-morph participation' stamp: 'KenD 10/25/2004 08:08'!
-includeInNewMorphMenu
-	^ false! !
-
-!CardContainerMorph class methodsFor: 'class initialization' stamp: 'KenD 1/10/2013 14:28'!
-initialize
-	"self initialize"
-	
-	ContainerOffset _ 2 @ 2.
-! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:49'!
-addCard: aCard
-
-	| newPos |
-	(self isEmpty)
-	      ifTrue: [newPos := 0 @ 0]
-		ifFalse: [newPos := (0 @ (PixelsPerOverlap * self numberOfCards))].
-	self addMorph: aCard.
-	aCard morphPosition: newPos.
-	self! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:56'!
-addCards: aCardCollectionOrContainer
-	"Add a collection of CardMorphs to the top of my Column"
-
-	| aCollection |
-	(aCardCollectionOrContainer isKindOf: CardContainerMorph)
-	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]
-	ifFalse: [ aCollection := aCardCollectionOrContainer ].
-	
-	"I assume checking for legality has alreade been done"
-	aCollection do: [:aCard| self addCard: aCard].
-	self showTopCard.
-	^aCardCollectionOrContainer
-! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 19:52'!
-makeEmpty
-	" remove all cards"
-	self removeAllMorphs! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:06'!
-numberOfCards
-	"Answer the number of Cards above aCard in my submorphs"
-
-	^(submorphs size)! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 10/28/2004 10:45'!
-numberOfCardsAbove: aCard
-	"Answer the number of Cards above aCard in my submorphs"
-
-	^submorphs indexOf: aCard! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 09:21'!
-showAllCardsFaceDown
-
-	(self submorphs isNil not) & (self submorphs size > 0)
-		ifTrue: [ self submorphs do: [ :card | card makeFaceDown ] ]! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 09:21'!
-showOnlyTopFace
-	"Show top card face up and others face down."
-
-	self showAllCardsFaceDown; showTopCard! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/19/2004 14:36'!
-showTopCard
-	"If not empty, show face of top card."
-
-	(self submorphs isNil not) & (self submorphs size > 0)
-		ifTrue: [ (self submorphs at: 1) makeFaceUp ].! !
-
-!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:59'!
-singletonCard
-	"Answer singleton submorph (an CardMorph) or nil"
-	self submorphs size = 1
-		ifTrue: [^ self submorphs at: 1]
-		ifFalse: [^ nil]! !
-
-!CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 6/25/2011 18:41'!
-initialize
-
-	super initialize! !
-
-!CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:14'!
-initializeWithScale: scale
-
-	super initializeWithScale: scale! !
-
-!CardColumnMorph methodsFor: 'testing' stamp: 'KenD 1/9/2013 21:05'!
-isEmpty
-
-	^(self submorphs size = 0)! !
-
-!CardColumnMorph methodsFor: 'layout' stamp: 'KenD 1/9/2013 19:10'!
-layoutSubmorphsVerticallyIn: layoutBounds
-	"Compute a new layout of submorphs based on the given layout bounds." 
-		"The Cards are overlapped by PixelsPerOverlap"
-		
-	| cardOffset |
-	
-	cardOffset := 0.
-	(self submorphs reversed) do:
-		[ :m | m morphPosition: (0 @ cardOffset ).
-			  cardOffset := cardOffset + PixelsPerOverlap ].
-! !
-
-!CardColumnMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
-restoreFromArray: stateArray givenDeck: aDeck
-	"Reconstiture a Card Container given a aDeck and a stateArray which
-	contains number of face up cards and an array of card numbers."
-
-	| numFaceUp cardNumArray position |
-	numFaceUp := stateArray at: 1.
-	cardNumArray := stateArray at: 2.
-	self makeEmpty.
-	position := cardNumArray size.
-	cardNumArray reverseDo: [ :cardNumber | 
-		| aCard |
-		aCard := aDeck cardFromNumber: cardNumber.
-		position > numFaceUp
-			ifTrue: [ aCard makeFaceDown ]
-			ifFalse: [ aCard makeFaceUp ].
-		position := position - 1.
-		self addCard: aCard ].
-	^self
-	! !
-
-!CardColumnMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 10:49'!
-saveStateToArray
-	"Answer an array of the number of cards face up and
-	an array containing Card Numbers of Cards I contain."
-
-	| cardNumArray numFaceUp |
-	numFaceUp := 0.	
-	cardNumArray := self submorphs 
-		collect: [ :aCard | 
-			aCard isFaceUp ifTrue: [ numFaceUp := numFaceUp + 1 ].
-			aCard cardNumber ].
-	^ { numFaceUp. cardNumArray. }! !
-
-!CardColumnMorph class methodsFor: 'class initialization' stamp: 'KenD 6/25/2011 17:51'!
-initialize
-
-	PixelsPerOverlap := 30. "The number of pixels shownof card under the top one."! !
-
-!CardColumnMorph class methodsFor: 'private' stamp: 'KenD 1/21/2011 17:40'!
-pixelsPerOverlap
-	"Cards in column overlap by.."
-
-	^PixelsPerOverlap! !
-
-!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/24/2011 02:08'!
-acceptDroppingMorph: aCardMorph event: evt 
-	"I do NOT accept dropped cards unless inUndo"
-	
-	| table |
-	table := self targetTable.
-	table isNil ifTrue: [^ false].
-	table inUndo ifTrue: [ self addCard: aCardMorph ]! !
-
-!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:47'!
-dropEnabled
-	"I do NOT accept drops"
-
-	^false! !
-
-!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:49'!
-wantsDroppedMorph: aMorph event: evt 
-	"I do NOT accept dropped cards"
-	
-	^false! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 09:22'!
-addCard: aCard
-	"Add a Card or Cards to me"
-
-	aCard morphPosition: ContainerOffset.
-	aCard hasSubmorphs 
-		ifTrue: [ "Add all the cards"
-			aCard makeFaceDown.
-			aCard submorphs 
-				do: [ :card | 
-					aCard removeMorph: card.
-					card makeFaceDown. "By convention decks are face down"
-					card morphPosition: ContainerOffset.
-					cardStack push: card ].
-	].
-	cardStack push: aCard.
-	self showTopCard;
-	yourself! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/11/2013 17:07'!
-addCards: aCollectionOrDeck
-	"Add Cards from aCollectionOrDeck into me."
-
-	(aCollectionOrDeck isKindOf: CardDeck)
-	ifTrue: [ (aCollectionOrDeck cards) 
-			 reverseDo: [ :card | 
-							card makeFaceDown.
-							cardStack push: card.	
-							card morphPosition: ContainerOffset.
-						] 
-	]
-	ifFalse: [ aCollectionOrDeck 
-			 reverseDo: [ :card | 
-							card makeFaceDown.
-							cardStack push: card.
-							card morphPosition: ContainerOffset. ] 
-						].
-	self showTopCard;
-	yourself! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:10'!
-makeEmpty
-	
-	(self hasSubmorphs)
-		ifTrue: [ self removeAllMorphs ].
-	cardStack := Stack new initialize.
-	^self! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:17'!
-numCards
-
-	^cardStack size! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/11/2013 17:12'!
-takeTopCard
-	"Answer my top card (removed from me)"
-
-	| topCard |
-	topCard := cardStack pop.
-	"By convention, return topCard face up."
-	topCard makeFaceUp.
-	"Show NEW top card"
-	self showTopCard.
-	^topCard! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:26'!
-topIsFaceDown
-
-	^topIsFaceDown! !
-
-!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:27'!
-topIsFaceDown: aBoolean
-
-	topIsFaceDown := aBoolean! !
-
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 09:59'!
-click: evt localPosition: ignoredPosition
-	"Delegate to table, if available."
-	
-	| table |
-"
-	Transcript newLine; show: (self name , ' got #click:localPosition:'). 
-"
-	table := self targetTable.
-	table isNil
-		ifTrue: [^ false]
-		ifFalse: [^ table click: evt from: self ]! !
-
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:00'!
-handlesMouseDown: evt 
-"
-	Transcript newLine; show: (self name , ' got #handlesMouseDown:').  
-"
-	^ true! !
-
-!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:18'!
-processMouseDown: evt localPosition: localEventPosition
-	"Do nothing upon mouse-down except inform the hand to watch for a 
-	click; wait until an ensuing #click: message gets dispatched"
-"
-	Transcript newLine; show: (self name , ' got #processMouseDown:localPosition:').  
-"
-" Never gets clicked. Click goes to World PasteUpMorph.  "
-"
-	evt hand waitForClicksOrDrag: self
-				event: evt clkSel: #click:localPosition: dblClkSel:nil.
-"
-	"Handle click ourselves"
-	evt wasHandled: true.
-	self click: evt localPosition: localEventPosition
-	! !
-
-!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 11/17/2004 11:32'!
-initialize
-	"Answer a new instance of me containing zero cards."
-
-	super initialize.
-	cardStack := Stack new initialize.
-	topIsFaceDown := true. "default"
-	self showTopCard.
-	^self! !
-
-!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 11/17/2004 11:36'!
-initializeFromCardCollection: aCollection
-	"Answer a new instance of me containing Cards from aCollection."
-
-	self initialize;
-	addCards: aCollection;
-	yourself! !
-
-!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:12'!
-initializeWithScale: scale
-	"Answer a new instance of me containing zero cards."
-
-	super initializeWithScale: scale.
-	cardStack := Stack new initialize.
-	topIsFaceDown := true. "default"
-	self showTopCard.
-	^self! !
-
-!CardDeckMorph methodsFor: 'testing' stamp: 'KenD 11/17/2004 11:50'!
-isEmpty
-	"I am empty if I contain zero Cards."
-
-	^cardStack isEmpty! !
-
-!CardDeckMorph methodsFor: 'testing' stamp: 'KenD 11/21/2004 13:50'!
-okToPickUp: aCard
-	"Never pick up a card from me"
-	
-	^false! !
-
-!CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
-restoreFromArray: stateArray givenDeck: aDeck
-	"Reconstiture a CardDeckMorph given a aDeck and a stateArray which contains card numbers."
-
-	self makeEmpty.
-	stateArray do: [ :cardNumber |
-		 self addCard: ((aDeck cardFromNumber: cardNumber) makeFaceDown)
-	].
-	^self
-	! !
-
-!CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 11/24/2004 12:06'!
-saveStateToArray
-	"Answer an array containint Card Numbers of Cards I contain"
-
-	| anArray |
-	anArray := cardStack asArray.
-	1 to: anArray size do: [ :index | 
-		anArray at: index put: ((anArray at: index) cardNumber) ].
-	^anArray! !
-
-!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/14/2013 09:21'!
-showTopCard
-	"PRIVATE -- I am invoked whenever Cards are added to or removed from me."
-
-	(self hasSubmorphs)
-		ifTrue: [ self removeAllMorphs ].
-	self isEmpty
-	ifFalse: [ | topCard |
-		topCard := cardStack topValue.
-		self topIsFaceDown 
-		ifFalse: [topCard makeFaceUp]
-		ifTrue: [topCard makeFaceDown].
-		topCard morphPosition: ContainerOffset.
-		self addMorph: topCard  
-	].
-	^self! !
-
-!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:20'!
-acceptDroppingMorph: aCardMorph event: evt 
-	"aMorph is a Card which may contain submorphs which 
-	are also Cards.  Add to me."
-
-	| table |
-	table := self targetTable.
-	table isNil 
-		ifFalse: [ 
-			table inUndo
-			ifFalse: [ 
-				self addCard: aCardMorph.
-				table addingCardOrCards: aCardMorph toContainer: self
-			]
-			ifTrue: [ "take all cards from deck into self if Card is nil"
-				aCardMorph isNil
-				ifFalse: [ self addCard: aCardMorph ]
-				ifTrue: [ | deck |
-					deck := table deck.
-					[ deck isEmpty ]
-						whileFalse:
-							[ self addCard: deck takeTopCard ]
-				]
-			]
-	]! !
-
-!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/22/2004 08:07'!
-dropComplete
-
-	super dropComplete.
-	self showTopCards! !
-
-!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:47'!
-dropEnabled
-	"I do NOT accept drops"
-
-	^false! !
-
-!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:49'!
-wantsDroppedMorph: aMorph event: evt 
-	"I do NOT accept dropped cards"
-	
-	^false! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 17:14'!
-addCard: aCard
-	"Add a Card to me"
-
-	| |
-	"All my Cards are face up"
-	aCard makeFaceUp.
-	"newPos := (((PixelOverlap * (self numCards  rem: 3)) + 2) @ 2)."
-	self addMorph: aCard;
-		showTopCards.
- 	"aCard morphPosition: newPos."
-	self! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 17:50'!
-cardStack
-
-	^cardStack! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:13'!
-makeEmpty
-	
-	(self hasSubmorphs)
-		ifTrue: [ self removeAllMorphs ].
-	cardStack := Stack new initialize.
-	^self! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 12:21'!
-numCards
-
-	^cardStack size! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 12:12'!
-numCardsToShow
-
-	^numCardsToShow! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 4/11/2016 14:32'!
-numCardsToShow: anInteger
-
-	| newWidth |
-	numCardsToShow := anInteger.
-	newWidth := CardMorph width * scale + ((anInteger - 1) * (scale * PixelOverlap)) + 4.
-	self morphWidth: newWidth;
-		 layoutSpec: (LayoutSpec fixedWidth: newWidth
-									 fixedHeight: (CardMorph height * scale + 4) 
-									 minorDirectionPadding: #center).
-	self redrawNeeded.
-	self showTopCards;
-		yourself! !
-
-!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/21/2004 14:00'!
-takeTopCard
-	"Answer my top card (removed from me)"
-
-	| topCard |
-	topCard := self submorphs at: 1.
-	self removeMorph: topCard.
-	self showTopCards.
-	^topCard! !
-
-!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:30'!
-initialize
-
-	super initialize.
-	scale := 1.
-	cardStack := Stack new initialize.
-	self numCardsToShow: 1; "Show top card by default."
-		yourself
-! !
-
-!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:31'!
-initializeWithScale: aScale
-
-	super initializeWithScale: aScale.
-	scale := aScale.
-	cardStack := Stack new initialize.
-	self numCardsToShow: 1; "Show top card by default."
-		yourself
-! !
-
-!CardDiscardMorph methodsFor: 'testing' stamp: 'KenD 11/21/2004 14:09'!
-isEmpty
-	"I am empty if I contain zero Cards."
-
-	^cardStack isEmpty & 
-	(self submorphs isNil | self submorphs size = 0)! !
-
-!CardDiscardMorph methodsFor: 'layout' stamp: 'KenD 4/11/2016 14:30'!
-layoutSubmorphsHorizontallyIn: layoutBounds
-	"Compute a new layout of submorphs based on the given layout bounds." 
-		"The Cards are overlapped by PixelsPerOverlap"
-		
-	|cardOffset|
-	
-	cardOffset := 0.
-
-	(self submorphs reversed) do:
-		[ :m | m morphPosition: (cardOffset @ 2).
-			   cardOffset := cardOffset +(PixelOverlap * scale) + 2 ].
-! !
-
-!CardDiscardMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
-restoreFromArray: stateArray givenDeck: aDeck
-	"Reconstiture a CardDeckMorph given a aDeck and a stateArray which contains card numbers."
-
-	self makeEmpty.
-	stateArray do: [ :cardNumber |
-		 self addCard: (aDeck cardFromNumber: cardNumber) 
-	].
-	^self
-	! !
-
-!CardDiscardMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 11:25'!
-saveStateToArray
-	"Answer an array containint Card Numbers of Cards I contain"
-
-	| anArray answerArray numTopCards numBottomCards |
-	numTopCards := self hasSubmorphs 
-					ifTrue: [ self submorphs size ] 
-					ifFalse: [ 0 ].
-	anArray := cardStack asArray.
-	numBottomCards := anArray size.
-	answerArray := Array new: numTopCards + numBottomCards.
-
-	1 to: numBottomCards
-	  do: [ :index |
-		answerArray at: index
-				 	 put: ((anArray at: index) cardNumber) ].
-				
-	1 to: numTopCards 
-	  do: [ :index | 
-		answerArray at: index + numBottomCards
-					put: ((self submorphs at: (numTopCards - index + 1)) 
-						 cardNumber)
-		].
-	^answerArray! !
-
-!CardDiscardMorph methodsFor: 'private' stamp: 'KenD 4/6/2016 20:30'!
-scale
-	^scale! !
-
-!CardDiscardMorph methodsFor: 'drawing' stamp: 'KenD 7/25/2014 19:09'!
-showTopCards
-	"Show numCardsToShow cards (if I contain that many)"
-
-	"Too few?"
-	[ (self submorphs size < numCardsToShow) and: [cardStack isEmpty not]]
-	whileTrue: [ self addMorphBack: (cardStack pop) ].
-	
-	"Too many?"
-	[ (self submorphs size > numCardsToShow) ]
-	whileTrue: [ | cardToMove |
-		cardToMove := (self submorphs at: (self submorphs size)).
-		cardStack push: cardToMove.
-		self removeMorph: cardToMove.
-	].
-	self layoutSubmorphsHorizontallyIn: (0@0 extent: self morphExtent).
-! !
-
-!CardDiscardMorph class methodsFor: 'class initialization' stamp: 'KenD 1/22/2011 16:34'!
-initialize
-
-	PixelOverlap := 10! !
-
-!CardDiscardMorph class methodsFor: 'instance creation' stamp: 'KenD 11/17/2004 12:13'!
-newShowing: numCards
-	
-	| newDiscard |
-	newDiscard := self new.
-	newDiscard numCardsToShow: numCards.
-	^newDiscard! !
-
-!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:18'!
-pixelOverlap
-
-	^PixelOverlap! !
-
-!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:19'!
-pixelsPerOverlap
-
-	^PixelOverlap! !
-
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:48'!
-addCard: aCard
-	"Add a Card to me"
-
-	"my cards are all face up"
-	aCard makeFaceUp.
-	self addMorph: aCard. "Nota Bene: resets location!!!!"
-	aCard morphPosition: ContainerOffset
-	
-! !
-
-!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:44'!
-addCards: aCardCollectionOrContainer
-	"Add a collection of CardMorphs to the top of my Pile"
-
-	| aCollection |
-	(aCardCollectionOrContainer isKindOf: CardContainerMorph)
-	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]
-	ifFalse: [ aCollection := aCardCollectionOrContainer ].
-	
-	"I assume checking for legality has alreade been done"
-	aCollection do: [ :aCard |
-		aCard makeFaceUp. 
-		self addMorph: aCard.
-		aCard morphPosition: ContainerOffset.  
-	].
-	^aCardCollectionOrContainer
-! !
-
-!CardPileMorph methodsFor: 'initialization' stamp: 'KenD 1/20/2011 18:45'!
-initialize
-	"Set layout so that only the top card is shown"
-
-	super initialize! !
-
-!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:49'!
-addCard: aCard
-	"Add a Card to me if I am empty."
-
-	"I assume checking for legality of drop has already been done"
-	(self submorphs size = 0)
-	ifTrue: [ aCard makeFaceUp.
-		      self addMorph: aCard.
-			aCard morphPosition: ContainerOffset. 
-			^self
-	]
-	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]
-! !
 
 !CardMorph methodsFor: 'comparing' stamp: 'KenD 1/10/2013 13:45'!
 < aCard
@@ -4492,6 +3577,921 @@ the: num of: suit scale: scale
 "
 	^ self fromCard: (CardMorph the: num of: suit) scale: scale! !
 
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:51'!
+disable
+	"setter for disabled"
+	
+	disabled := true.
+	self color: (self origColor darker darker darker).
+	self redrawNeeded.
+	^self! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 11/6/2004 18:29'!
+disabled
+	^disabled! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/9/2013 20:29'!
+enable
+	"setter for disabled"
+
+	disabled := false.
+	self color: origColor.
+	self redrawNeeded.
+	^self! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 11/6/2004 19:07'!
+labelStringMorph
+
+	self allMorphsDo: [:m | (m isKindOf: StringMorph) ifTrue: [^m]].
+	^ nil! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
+origColor
+	
+	^origColor! !
+
+!EnableDisableButton methodsFor: 'accessing' stamp: 'KenD 1/23/2013 10:39'!
+origColor: aColor
+	
+	origColor := aColor! !
+
+!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 14:06'!
+handlesMouseDown: evt
+	"False if not enabled"
+	
+	self isDisabled
+	ifTrue: [ ^false ]
+	ifFalse: [ ^super handlesMouseDown: evt ]! !
+
+!EnableDisableButton methodsFor: 'event handling' stamp: 'KenD 3/22/2015 13:47'!
+mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition
+
+	self isEnabled "guard condition"
+	ifTrue: [ super mouseButton1Down: aMouseButtonEvent localPosition: localEventPosition ]
+! !
+
+!EnableDisableButton methodsFor: 'initialization' stamp: 'KenD 1/23/2013 10:40'!
+initialize
+	"Start out enabled"
+
+	super initialize.
+	disabled := false.
+	self color: (Theme current buttonColorFrom: 
+					(Theme current defaultWindowColor)).
+	self origColor: self color.
+	^self! !
+
+!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
+isDisabled
+	^self disabled! !
+
+!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 11/6/2004 18:15'!
+isEnabled
+	^self disabled not! !
+
+!EnableDisableButton methodsFor: 'testing' stamp: 'KenD 4/17/2013 20:58'!
+isLocked
+     ^self isDisabled! !
+
+!EnableDisableButton class methodsFor: 'as yet unclassified' stamp: 'KenD 6/23/2011 22:03'!
+includeInNewMorphMenu
+	^ false! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 8/12/2015 07:02'!
+acceptDroppingMorph: aMorph event: evt 
+	"aMorph is a Card which may contain submorphs which 
+	are also Cards.  Add to me."
+
+	| table |
+	table := self targetTable.
+"Transcript show: table asString; show: ' Drop of ',  (aMorph face asString), ' of ', (aMorph suit asString); newLine."
+	aMorph hideDropShadow.
+	self addCard: aMorph.
+	aMorph submorphs reverseDo: [:aCard | self addCard: aCard].
+	table isNil ifFalse: [ table addingCardOrCards: aMorph toContainer: self ]
+! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:14'!
+allowsMorphDrop
+	"Answer whether we accept dropping morphs. By default answer false."
+
+	^ true! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/22/2013 19:15'!
+allowsSubmorphDrag
+	"Answer whether our morphs can just be grabbed with the hand, instead of requiring the use of the halo. By default answer false."
+
+	^ true! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/29/2004 10:25'!
+dropComplete
+	"Someone dropped one or more cards into me.  Tell the Card Table about it."
+
+	| table |
+	table := self targetTable.
+	table isNil
+		ifTrue: [^ false]
+		ifFalse: [^ table dropComplete]! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/30/2015 20:17'!
+okToPickUp: aCard
+	"Answer false unless I have a table, else ask the table."
+
+	| table result feedback |
+	table := self targetTable.
+	table isNil
+		ifTrue: [ result :=  false ]
+		ifFalse: [ result := (table pickLegalFor: aCard) ].
+"
+	Transcript newLine; show: (self name , ' got #okToPickUp:  answered ' , result printString ).  
+"
+	result ifFalse: [
+		feedback := HoverHelpMorph contents: 'illegal move'.
+		feedback popUpForHand: (feedback world activeHand) 
+	].
+	^ result! !
+
+!CardContainerMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 10/25/2004 16:14'!
+wantsDroppedMorph: aMorph event: evt 
+	"Answer false unless I have a table, else ask the table."
+	| table |
+	table := self targetTable.
+	table isNil
+		ifTrue: [^ false]
+		ifFalse: [^ table container: self wantsDropOf: aMorph]! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:53'!
+addCard: aCard
+	"Add a Card to me"
+
+	"I assume checking for legality of drop has already been done"
+	self addMorph: aCard.
+	aCard morphPosition: 0 @ 0.
+	self
+
+! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 3/1/2015 17:08'!
+containerOffset
+	"Offset from my morphPosition to that of contained card"
+
+	^ContainerOffset! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 18:54'!
+dropEnabled
+	"I assume cards are to be dropped on me -- subclasses my override"
+
+	^true! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:11'!
+makeEmpty
+
+	(self hasSubmorphs)
+		ifTrue: [ self removeAllMorphs ].! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/24/2004 15:03'!
+numCards
+	"Answer the number of AltCardMorphs I contain."
+	^ self submorphCount! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:23'!
+targetTable
+	"Answer my containing table or nil.
+	 Cache my containing Table as required."
+	targetTable isNil
+		ifTrue: [self setTargetTable].
+	^ targetTable! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/21/2004 17:50'!
+targetTable: anCardTable
+
+	targetTable := anCardTable! !
+
+!CardContainerMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:11'!
+topCard
+	"Answer my top Card or nil."
+
+	| cards |
+	cards := self submorphs.
+	(cards size = 0)
+	ifTrue: [ ^nil ]
+	ifFalse: [ ^cards at: 1 ]! !
+
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 1/21/2011 04:38'!
+defaultLayout
+	^LayoutSpec  fixedWidth: (CardMorph width + 4)
+					 fixedHeight: (CardMorph height + 4) 
+					 minorDirectionPadding: #center! !
+
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:12'!
+defaultLayoutWithScale: scale
+	^LayoutSpec  fixedWidth:  (CardMorph width * scale + 4)
+					 fixedHeight: (CardMorph height * scale + 4) 
+					 minorDirectionPadding: #center! !
+
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
+initialize
+	"Set my typical properties; Assume displayed on a Green table."
+
+	super initialize.
+	self color: Color transparent;
+		borderColor: Color yellow;
+		borderWidth: 2; "pixels"
+		morphWidth:  CardMorph morphWidth + 4;
+		morphHeight: CardMorph morphHeight + 4;
+		layoutSpec: self defaultLayout; "subclasses may mutate or replace"
+		yourself! !
+
+!CardContainerMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:13'!
+initializeWithScale: scale
+	"Set my typical properties; Assume displayed on a Green table."
+
+	super initialize.
+	self color: Color transparent;
+		borderColor: Color yellow;
+		borderWidth: 2; "pixels"
+		morphWidth:  CardMorph morphWidth * scale + 4;
+		morphHeight: CardMorph morphHeight * scale + 4;
+		layoutSpec: (self defaultLayoutWithScale: scale); "subclasses may mutate or replace"
+		yourself! !
+
+!CardContainerMorph methodsFor: 'testing' stamp: 'KenD 10/21/2004 14:24'!
+isCardContainer
+	
+	^true! !
+
+!CardContainerMorph methodsFor: 'testing' stamp: 'KenD 1/21/2011 22:11'!
+isEmpty
+	"I am empty if I contain 0 Cards"
+	^ (self hasSubmorphs not)! !
+
+!CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:14'!
+restoreFromArray: stateArray givenDeck: aDeck
+	"Reconstiture a Card Container given a aDeck and a stateArray which contains card numbers."
+
+	self makeEmpty.
+	stateArray reverseDo: [ :cardNumber | self addCard: (aDeck cardFromNumber: cardNumber) ].
+	^self
+	! !
+
+!CardContainerMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 10:45'!
+saveStateToArray
+	"Answer an array containing Card Numbers of Cards I contain"
+
+	^self submorphs collect: [ :aCard | aCard cardNumber ]! !
+
+!CardContainerMorph methodsFor: 'private' stamp: 'KenD 1/10/2013 13:51'!
+setTargetTable
+	"Follow the owner chain to an CardTable and set the targetTable to it."
+	| myOwner stillLooking |
+	myOwner := self owner.
+	stillLooking := myOwner isNil not & (myOwner isKindOf: CardTableMorph) not.
+	[stillLooking]
+		whileTrue: [myOwner := myOwner owner.
+			stillLooking := myOwner isNil not 
+						& (myOwner isKindOf: CardTableMorph) not].
+	(myOwner isKindOf: CardTableMorph)
+		ifTrue: [self targetTable: myOwner]! !
+
+!CardContainerMorph class methodsFor: 'new-morph participation' stamp: 'KenD 10/25/2004 08:08'!
+includeInNewMorphMenu
+	^ false! !
+
+!CardContainerMorph class methodsFor: 'class initialization' stamp: 'KenD 1/10/2013 14:28'!
+initialize
+	"self initialize"
+	
+	ContainerOffset _ 2 @ 2.
+! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:49'!
+addCard: aCard
+
+	| newPos |
+	(self isEmpty)
+	      ifTrue: [newPos := 0 @ 0]
+		ifFalse: [newPos := (0 @ (PixelsPerOverlap * self numberOfCards))].
+	self addMorph: aCard.
+	aCard morphPosition: newPos.
+	self! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 3/2/2015 14:56'!
+addCards: aCardCollectionOrContainer
+	"Add a collection of CardMorphs to the top of my Column"
+
+	| aCollection |
+	(aCardCollectionOrContainer isKindOf: CardContainerMorph)
+	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]
+	ifFalse: [ aCollection := aCardCollectionOrContainer ].
+	
+	"I assume checking for legality has alreade been done"
+	aCollection do: [:aCard| self addCard: aCard].
+	self showTopCard.
+	^aCardCollectionOrContainer
+! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/10/2013 19:52'!
+makeEmpty
+	" remove all cards"
+	self removeAllMorphs! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 1/9/2013 21:06'!
+numberOfCards
+	"Answer the number of Cards above aCard in my submorphs"
+
+	^(submorphs size)! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 10/28/2004 10:45'!
+numberOfCardsAbove: aCard
+	"Answer the number of Cards above aCard in my submorphs"
+
+	^submorphs indexOf: aCard! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 09:21'!
+showAllCardsFaceDown
+
+	(self submorphs isNil not) & (self submorphs size > 0)
+		ifTrue: [ self submorphs do: [ :card | card makeFaceDown ] ]! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 09:21'!
+showOnlyTopFace
+	"Show top card face up and others face down."
+
+	self showAllCardsFaceDown; showTopCard! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 11/19/2004 14:36'!
+showTopCard
+	"If not empty, show face of top card."
+
+	(self submorphs isNil not) & (self submorphs size > 0)
+		ifTrue: [ (self submorphs at: 1) makeFaceUp ].! !
+
+!CardColumnMorph methodsFor: 'accessing' stamp: 'KenD 10/23/2004 19:59'!
+singletonCard
+	"Answer singleton submorph (an CardMorph) or nil"
+	self submorphs size = 1
+		ifTrue: [^ self submorphs at: 1]
+		ifFalse: [^ nil]! !
+
+!CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 6/25/2011 18:41'!
+initialize
+
+	super initialize! !
+
+!CardColumnMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 15:14'!
+initializeWithScale: scale
+
+	super initializeWithScale: scale! !
+
+!CardColumnMorph methodsFor: 'testing' stamp: 'KenD 1/9/2013 21:05'!
+isEmpty
+
+	^(self submorphs size = 0)! !
+
+!CardColumnMorph methodsFor: 'layout' stamp: 'KenD 1/9/2013 19:10'!
+layoutSubmorphsVerticallyIn: layoutBounds
+	"Compute a new layout of submorphs based on the given layout bounds." 
+		"The Cards are overlapped by PixelsPerOverlap"
+		
+	| cardOffset |
+	
+	cardOffset := 0.
+	(self submorphs reversed) do:
+		[ :m | m morphPosition: (0 @ cardOffset ).
+			  cardOffset := cardOffset + PixelsPerOverlap ].
+! !
+
+!CardColumnMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
+restoreFromArray: stateArray givenDeck: aDeck
+	"Reconstiture a Card Container given a aDeck and a stateArray which
+	contains number of face up cards and an array of card numbers."
+
+	| numFaceUp cardNumArray position |
+	numFaceUp := stateArray at: 1.
+	cardNumArray := stateArray at: 2.
+	self makeEmpty.
+	position := cardNumArray size.
+	cardNumArray reverseDo: [ :cardNumber | 
+		| aCard |
+		aCard := aDeck cardFromNumber: cardNumber.
+		position > numFaceUp
+			ifTrue: [ aCard makeFaceDown ]
+			ifFalse: [ aCard makeFaceUp ].
+		position := position - 1.
+		self addCard: aCard ].
+	^self
+	! !
+
+!CardColumnMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 10:49'!
+saveStateToArray
+	"Answer an array of the number of cards face up and
+	an array containing Card Numbers of Cards I contain."
+
+	| cardNumArray numFaceUp |
+	numFaceUp := 0.	
+	cardNumArray := self submorphs 
+		collect: [ :aCard | 
+			aCard isFaceUp ifTrue: [ numFaceUp := numFaceUp + 1 ].
+			aCard cardNumber ].
+	^ { numFaceUp. cardNumArray. }! !
+
+!CardColumnMorph class methodsFor: 'class initialization' stamp: 'KenD 6/25/2011 17:51'!
+initialize
+
+	PixelsPerOverlap := 30. "The number of pixels shownof card under the top one."! !
+
+!CardColumnMorph class methodsFor: 'private' stamp: 'KenD 1/21/2011 17:40'!
+pixelsPerOverlap
+	"Cards in column overlap by.."
+
+	^PixelsPerOverlap! !
+
+!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 1/24/2011 02:08'!
+acceptDroppingMorph: aCardMorph event: evt 
+	"I do NOT accept dropped cards unless inUndo"
+	
+	| table |
+	table := self targetTable.
+	table isNil ifTrue: [^ false].
+	table inUndo ifTrue: [ self addCard: aCardMorph ]! !
+
+!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:47'!
+dropEnabled
+	"I do NOT accept drops"
+
+	^false! !
+
+!CardDeckMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:49'!
+wantsDroppedMorph: aMorph event: evt 
+	"I do NOT accept dropped cards"
+	
+	^false! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 09:22'!
+addCard: aCard
+	"Add a Card or Cards to me"
+
+	aCard morphPosition: ContainerOffset.
+	aCard hasSubmorphs 
+		ifTrue: [ "Add all the cards"
+			aCard makeFaceDown.
+			aCard submorphs 
+				do: [ :card | 
+					aCard removeMorph: card.
+					card makeFaceDown. "By convention decks are face down"
+					card morphPosition: ContainerOffset.
+					cardStack push: card ].
+	].
+	cardStack push: aCard.
+	self showTopCard;
+	yourself! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/11/2013 17:07'!
+addCards: aCollectionOrDeck
+	"Add Cards from aCollectionOrDeck into me."
+
+	(aCollectionOrDeck isKindOf: CardDeck)
+	ifTrue: [ (aCollectionOrDeck cards) 
+			 reverseDo: [ :card | 
+							card makeFaceDown.
+							cardStack push: card.	
+							card morphPosition: ContainerOffset.
+						] 
+	]
+	ifFalse: [ aCollectionOrDeck 
+			 reverseDo: [ :card | 
+							card makeFaceDown.
+							cardStack push: card.
+							card morphPosition: ContainerOffset. ] 
+						].
+	self showTopCard;
+	yourself! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:10'!
+makeEmpty
+	
+	(self hasSubmorphs)
+		ifTrue: [ self removeAllMorphs ].
+	cardStack := Stack new initialize.
+	^self! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:17'!
+numCards
+
+	^cardStack size! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 1/11/2013 17:12'!
+takeTopCard
+	"Answer my top card (removed from me)"
+
+	| topCard |
+	topCard := cardStack pop.
+	"By convention, return topCard face up."
+	topCard makeFaceUp.
+	"Show NEW top card"
+	self showTopCard.
+	^topCard! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:26'!
+topIsFaceDown
+
+	^topIsFaceDown! !
+
+!CardDeckMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 11:27'!
+topIsFaceDown: aBoolean
+
+	topIsFaceDown := aBoolean! !
+
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 09:59'!
+click: evt localPosition: ignoredPosition
+	"Delegate to table, if available."
+	
+	| table |
+"
+	Transcript newLine; show: (self name , ' got #click:localPosition:'). 
+"
+	table := self targetTable.
+	table isNil
+		ifTrue: [^ false]
+		ifFalse: [^ table click: evt from: self ]! !
+
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/21/2013 10:00'!
+handlesMouseDown: evt 
+"
+	Transcript newLine; show: (self name , ' got #handlesMouseDown:').  
+"
+	^ true! !
+
+!CardDeckMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:18'!
+processMouseDown: evt localPosition: localEventPosition
+	"Do nothing upon mouse-down except inform the hand to watch for a 
+	click; wait until an ensuing #click: message gets dispatched"
+"
+	Transcript newLine; show: (self name , ' got #processMouseDown:localPosition:').  
+"
+" Never gets clicked. Click goes to World PasteUpMorph.  "
+"
+	evt hand waitForClicksOrDrag: self
+				event: evt clkSel: #click:localPosition: dblClkSel:nil.
+"
+	"Handle click ourselves"
+	evt wasHandled: true.
+	self click: evt localPosition: localEventPosition
+	! !
+
+!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 11/17/2004 11:32'!
+initialize
+	"Answer a new instance of me containing zero cards."
+
+	super initialize.
+	cardStack := Stack new initialize.
+	topIsFaceDown := true. "default"
+	self showTopCard.
+	^self! !
+
+!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 11/17/2004 11:36'!
+initializeFromCardCollection: aCollection
+	"Answer a new instance of me containing Cards from aCollection."
+
+	self initialize;
+	addCards: aCollection;
+	yourself! !
+
+!CardDeckMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:12'!
+initializeWithScale: scale
+	"Answer a new instance of me containing zero cards."
+
+	super initializeWithScale: scale.
+	cardStack := Stack new initialize.
+	topIsFaceDown := true. "default"
+	self showTopCard.
+	^self! !
+
+!CardDeckMorph methodsFor: 'testing' stamp: 'KenD 11/17/2004 11:50'!
+isEmpty
+	"I am empty if I contain zero Cards."
+
+	^cardStack isEmpty! !
+
+!CardDeckMorph methodsFor: 'testing' stamp: 'KenD 11/21/2004 13:50'!
+okToPickUp: aCard
+	"Never pick up a card from me"
+	
+	^false! !
+
+!CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
+restoreFromArray: stateArray givenDeck: aDeck
+	"Reconstiture a CardDeckMorph given a aDeck and a stateArray which contains card numbers."
+
+	self makeEmpty.
+	stateArray do: [ :cardNumber |
+		 self addCard: ((aDeck cardFromNumber: cardNumber) makeFaceDown)
+	].
+	^self
+	! !
+
+!CardDeckMorph methodsFor: 'fileIn/out' stamp: 'KenD 11/24/2004 12:06'!
+saveStateToArray
+	"Answer an array containint Card Numbers of Cards I contain"
+
+	| anArray |
+	anArray := cardStack asArray.
+	1 to: anArray size do: [ :index | 
+		anArray at: index put: ((anArray at: index) cardNumber) ].
+	^anArray! !
+
+!CardDeckMorph methodsFor: 'private' stamp: 'KenD 1/14/2013 09:21'!
+showTopCard
+	"PRIVATE -- I am invoked whenever Cards are added to or removed from me."
+
+	(self hasSubmorphs)
+		ifTrue: [ self removeAllMorphs ].
+	self isEmpty
+	ifFalse: [ | topCard |
+		topCard := cardStack topValue.
+		self topIsFaceDown 
+		ifFalse: [topCard makeFaceUp]
+		ifTrue: [topCard makeFaceDown].
+		topCard morphPosition: ContainerOffset.
+		self addMorph: topCard  
+	].
+	^self! !
+
+!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 3/20/2015 19:20'!
+acceptDroppingMorph: aCardMorph event: evt 
+	"aMorph is a Card which may contain submorphs which 
+	are also Cards.  Add to me."
+
+	| table |
+	table := self targetTable.
+	table isNil 
+		ifFalse: [ 
+			table inUndo
+			ifFalse: [ 
+				self addCard: aCardMorph.
+				table addingCardOrCards: aCardMorph toContainer: self
+			]
+			ifTrue: [ "take all cards from deck into self if Card is nil"
+				aCardMorph isNil
+				ifFalse: [ self addCard: aCardMorph ]
+				ifTrue: [ | deck |
+					deck := table deck.
+					[ deck isEmpty ]
+						whileFalse:
+							[ self addCard: deck takeTopCard ]
+				]
+			]
+	]! !
+
+!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/22/2004 08:07'!
+dropComplete
+
+	super dropComplete.
+	self showTopCards! !
+
+!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:47'!
+dropEnabled
+	"I do NOT accept drops"
+
+	^false! !
+
+!CardDiscardMorph methodsFor: 'dropping/grabbing' stamp: 'KenD 11/21/2004 13:49'!
+wantsDroppedMorph: aMorph event: evt 
+	"I do NOT accept dropped cards"
+	
+	^false! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/14/2013 17:14'!
+addCard: aCard
+	"Add a Card to me"
+
+	| |
+	"All my Cards are face up"
+	aCard makeFaceUp.
+	"newPos := (((PixelOverlap * (self numCards  rem: 3)) + 2) @ 2)."
+	self addMorph: aCard;
+		showTopCards.
+ 	"aCard morphPosition: newPos."
+	self! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/20/2004 17:50'!
+cardStack
+
+	^cardStack! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 1/21/2011 22:13'!
+makeEmpty
+	
+	(self hasSubmorphs)
+		ifTrue: [ self removeAllMorphs ].
+	cardStack := Stack new initialize.
+	^self! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 12:21'!
+numCards
+
+	^cardStack size! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/17/2004 12:12'!
+numCardsToShow
+
+	^numCardsToShow! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 4/11/2016 14:32'!
+numCardsToShow: anInteger
+
+	| newWidth |
+	numCardsToShow := anInteger.
+	newWidth := CardMorph width * scale + ((anInteger - 1) * (scale * PixelOverlap)) + 4.
+	self morphWidth: newWidth;
+		 layoutSpec: (LayoutSpec fixedWidth: newWidth
+									 fixedHeight: (CardMorph height * scale + 4) 
+									 minorDirectionPadding: #center).
+	self redrawNeeded.
+	self showTopCards;
+		yourself! !
+
+!CardDiscardMorph methodsFor: 'accessing' stamp: 'KenD 11/21/2004 14:00'!
+takeTopCard
+	"Answer my top card (removed from me)"
+
+	| topCard |
+	topCard := self submorphs at: 1.
+	self removeMorph: topCard.
+	self showTopCards.
+	^topCard! !
+
+!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:30'!
+initialize
+
+	super initialize.
+	scale := 1.
+	cardStack := Stack new initialize.
+	self numCardsToShow: 1; "Show top card by default."
+		yourself
+! !
+
+!CardDiscardMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 20:31'!
+initializeWithScale: aScale
+
+	super initializeWithScale: aScale.
+	scale := aScale.
+	cardStack := Stack new initialize.
+	self numCardsToShow: 1; "Show top card by default."
+		yourself
+! !
+
+!CardDiscardMorph methodsFor: 'testing' stamp: 'KenD 11/21/2004 14:09'!
+isEmpty
+	"I am empty if I contain zero Cards."
+
+	^cardStack isEmpty & 
+	(self submorphs isNil | self submorphs size = 0)! !
+
+!CardDiscardMorph methodsFor: 'layout' stamp: 'KenD 4/11/2016 14:30'!
+layoutSubmorphsHorizontallyIn: layoutBounds
+	"Compute a new layout of submorphs based on the given layout bounds." 
+		"The Cards are overlapped by PixelsPerOverlap"
+		
+	|cardOffset|
+	
+	cardOffset := 0.
+
+	(self submorphs reversed) do:
+		[ :m | m morphPosition: (cardOffset @ 2).
+			   cardOffset := cardOffset +(PixelOverlap * scale) + 2 ].
+! !
+
+!CardDiscardMorph methodsFor: 'fileIn/out' stamp: 'KenD 1/24/2011 02:08'!
+restoreFromArray: stateArray givenDeck: aDeck
+	"Reconstiture a CardDeckMorph given a aDeck and a stateArray which contains card numbers."
+
+	self makeEmpty.
+	stateArray do: [ :cardNumber |
+		 self addCard: (aDeck cardFromNumber: cardNumber) 
+	].
+	^self
+	! !
+
+!CardDiscardMorph methodsFor: 'fileIn/out' stamp: 'KenD 12/3/2004 11:25'!
+saveStateToArray
+	"Answer an array containint Card Numbers of Cards I contain"
+
+	| anArray answerArray numTopCards numBottomCards |
+	numTopCards := self hasSubmorphs 
+					ifTrue: [ self submorphs size ] 
+					ifFalse: [ 0 ].
+	anArray := cardStack asArray.
+	numBottomCards := anArray size.
+	answerArray := Array new: numTopCards + numBottomCards.
+
+	1 to: numBottomCards
+	  do: [ :index |
+		answerArray at: index
+				 	 put: ((anArray at: index) cardNumber) ].
+				
+	1 to: numTopCards 
+	  do: [ :index | 
+		answerArray at: index + numBottomCards
+					put: ((self submorphs at: (numTopCards - index + 1)) 
+						 cardNumber)
+		].
+	^answerArray! !
+
+!CardDiscardMorph methodsFor: 'private' stamp: 'KenD 4/6/2016 20:30'!
+scale
+	^scale! !
+
+!CardDiscardMorph methodsFor: 'drawing' stamp: 'KenD 7/25/2014 19:09'!
+showTopCards
+	"Show numCardsToShow cards (if I contain that many)"
+
+	"Too few?"
+	[ (self submorphs size < numCardsToShow) and: [cardStack isEmpty not]]
+	whileTrue: [ self addMorphBack: (cardStack pop) ].
+	
+	"Too many?"
+	[ (self submorphs size > numCardsToShow) ]
+	whileTrue: [ | cardToMove |
+		cardToMove := (self submorphs at: (self submorphs size)).
+		cardStack push: cardToMove.
+		self removeMorph: cardToMove.
+	].
+	self layoutSubmorphsHorizontallyIn: (0@0 extent: self morphExtent).
+! !
+
+!CardDiscardMorph class methodsFor: 'class initialization' stamp: 'KenD 1/22/2011 16:34'!
+initialize
+
+	PixelOverlap := 10! !
+
+!CardDiscardMorph class methodsFor: 'instance creation' stamp: 'KenD 11/17/2004 12:13'!
+newShowing: numCards
+	
+	| newDiscard |
+	newDiscard := self new.
+	newDiscard numCardsToShow: numCards.
+	^newDiscard! !
+
+!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:18'!
+pixelOverlap
+
+	^PixelOverlap! !
+
+!CardDiscardMorph class methodsFor: 'accessing' stamp: 'KenD 1/15/2013 20:19'!
+pixelsPerOverlap
+
+	^PixelOverlap! !
+
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:48'!
+addCard: aCard
+	"Add a Card to me"
+
+	"my cards are all face up"
+	aCard makeFaceUp.
+	self addMorph: aCard. "Nota Bene: resets location!!!!"
+	aCard morphPosition: ContainerOffset
+	
+! !
+
+!CardPileMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:44'!
+addCards: aCardCollectionOrContainer
+	"Add a collection of CardMorphs to the top of my Pile"
+
+	| aCollection |
+	(aCardCollectionOrContainer isKindOf: CardContainerMorph)
+	ifTrue: [ aCollection := aCardCollectionOrContainer submorphs ]
+	ifFalse: [ aCollection := aCardCollectionOrContainer ].
+	
+	"I assume checking for legality has alreade been done"
+	aCollection do: [ :aCard |
+		aCard makeFaceUp. 
+		self addMorph: aCard.
+		aCard morphPosition: ContainerOffset.  
+	].
+	^aCardCollectionOrContainer
+! !
+
+!CardPileMorph methodsFor: 'initialization' stamp: 'KenD 1/20/2011 18:45'!
+initialize
+	"Set layout so that only the top card is shown"
+
+	super initialize! !
+
+!CardSpareMorph methodsFor: 'accessing' stamp: 'KenD 1/13/2013 15:49'!
+addCard: aCard
+	"Add a Card to me if I am empty."
+
+	"I assume checking for legality of drop has already been done"
+	(self submorphs size = 0)
+	ifTrue: [ aCard makeFaceUp.
+		      self addMorph: aCard.
+			aCard morphPosition: ContainerOffset. 
+			^self
+	]
+	ifFalse: [Error signal: 'A Spare can hold only 1 card' ]
+! !
+
 !CardTableMorph methodsFor: 'event handling' stamp: 'KenD 1/22/2013 19:28'!
 aboutToBeGrabbedBy: aHand 
 	"I'm about to be grabbed by the hand.
@@ -4791,7 +4791,7 @@ makeHelpButton
 		 (EnableDisableButton 
 			model: self stateGetter: nil action: #help label: 'Help')! !
 
-!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 4/6/2016 19:22'!
+!CardTableMorph methodsFor: 'initialization' stamp: 'KenD 5/25/2018 20:03:06'!
 makeLabelArea: lableString
 	"Make a new Lable Area as a submorph"
 	
@@ -4802,7 +4802,7 @@ makeLabelArea: lableString
 			emphasis: 1;  "emphasis: bold=1"
 			font: (AbstractFont familyName: 'DejaVu' pointSize: 22). 
 	"@@FIXME: scale"			
-	labelMorph  layoutSpec: (LayoutSpec  proportionalWidth: 0.9 fixedHeight: 30).
+	labelMorph  layoutSpec: (LayoutSpec  proportionalWidth: 1.0 fixedHeight: 30 minorDirectionPadding: #left).
 	
 	labelLayout
 			color: Color transparent;
@@ -7088,9 +7088,9 @@ with: anObject
 	^ self new initialize;
 		push: anObject;
 		yourself! !
+CardMorph initialize!
 CardContainerMorph initialize!
 CardColumnMorph initialize!
 CardDiscardMorph initialize!
-CardMorph initialize!
 FreeCell initialize!
 Klondike initialize!
